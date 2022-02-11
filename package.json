@@ -1,0 +1,45 @@
+{
+    "name": "plantz",
+    "version": "0.0.1",
+    "private": true,
+    "scripts": {
+        "dev": "next dev",
+        "build": "next build",
+        "start": "next start",
+        "lint": "next lint",
+        "seed": "node -r dotenv/config seed/seed.mjs dotenv_config_path=.env.local",
+        "reset-indexes": "node -r dotenv/config seed/resetIndexes.mjs dotenv_config_path=.env.local"
+    },
+    "dependencies": {
+        "@chakra-ui/icons": "1.1.5",
+        "@chakra-ui/react": "1.8.1",
+        "@emotion/react": "11.6.0",
+        "@emotion/styled": "11.6.0",
+        "eventemitter3": "4.0.7",
+        "fast-deep-equal": "3.1.3",
+        "formik": "2.2.9",
+        "framer-motion": "4.1.17",
+        "mongodb": "4.2.0",
+        "next": "12.0.10",
+        "react": "17.0.2",
+        "react-dom": "17.0.2",
+        "react-query": "3.34.12",
+        "uuid": "8.3.2",
+        "yup": "0.32.11",
+        "react-error-boundary": "3.1.4",
+        "react-icons": "4.3.1",
+        "react-infinite-scroller": "1.2.5"
+    },
+    "devDependencies": {
+        "@types/eventemitter3": "2.0.2",
+        "@types/node": "16.11.7",
+        "@types/react": "17.0.35",
+        "dotenv": "10.0.0",
+        "eslint": "7.32.0",
+        "eslint-config-next": "12.0.4",
+        "eslint-plugin-sort-destructure-keys": "1.3.5",
+        "eslint-plugin-sort-keys-fix": "1.1.2",
+        "eslint-plugin-typescript-sort-keys": "1.8.0",
+        "typescript": "4.4.4"
+    }
+}
