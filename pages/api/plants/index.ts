@@ -1,65 +1,71 @@
 import { AddPlantModel, EditPlantModel, PlantModel, addPlantValidationSchema, editPlantValidationSchema } from "@features/plants";
-import { ApiDeleteResponse, ApiGetResponse, ApiPostResponse, ApiPutResponse, InsertedIdData } from "@core/api";
+import { ApiCommandResponse, ApiGetResponse, IdentityData } from "@core/api";
 import { NextApiRequest, NextApiResponse } from "next";
-import { PlantsCollectionName, connectToMongoDb } from "@core/mongoDb/server";
-import { apiHandler, withModelValidation } from "@core/api/handlers/server";
+import { PlantsCollectionName, toSerializableModel, withMongoDb } from "@core/mongoDb/server";
+import { apiHandler, withBodyValidation } from "@core/api/handlers/server";
 
 import { Nullable } from "@core/types";
 import { ObjectId } from "mongodb";
-import { findPlant } from "@features/plants/server";
+import { isNil } from "@core/utils";
 
 async function handleGetSingle(req: NextApiRequest, res: NextApiResponse<ApiGetResponse<Nullable<PlantModel>>>) {
     const { id } = req.query;
 
-    const plant = await findPlant(id as string);
+    const plant = await withMongoDb(database => {
+        return database
+            .collection(PlantsCollectionName)
+            .findOne({ _id: new ObjectId(id as string) });
+    });
 
     res.status(200).json({
-        data: plant
+        data: !isNil(plant)
+            ? toSerializableModel<PlantModel>(plant)
+            : plant
     });
 }
 
-async function handlePost(req: NextApiRequest, res: NextApiResponse<ApiPostResponse<InsertedIdData>>) {
+async function handlePost(req: NextApiRequest, res: NextApiResponse<ApiCommandResponse<IdentityData>>) {
     const model = req.body as AddPlantModel;
 
-    const { mongoDb } = await connectToMongoDb();
-
-    const { insertedId } = await mongoDb.collection(PlantsCollectionName).insertOne({
-        ...model,
-        creationDate: Date.now(),
-        lastUpdateDate: Date.now()
+    const { insertedId } = await withMongoDb(database => {
+        return database.collection(PlantsCollectionName).insertOne({
+            ...model,
+            creationDate: Date.now(),
+            lastUpdateDate: Date.now()
+        });
     });
 
     res.status(200).json({
         data: {
-            insertedId: insertedId.toJSON()
+            id: insertedId.toJSON()
         }
     });
 }
 
-async function handlePut(req: NextApiRequest, res: NextApiResponse<ApiPutResponse>) {
+async function handlePut(req: NextApiRequest, res: NextApiResponse<ApiCommandResponse>) {
     const model = req.body as EditPlantModel;
 
-    const { mongoDb } = await connectToMongoDb();
-
-    await mongoDb.collection(PlantsCollectionName).replaceOne(
-        { _id: new ObjectId(model.id) },
-        {
-            ...model,
-            lastUpdateDate: Date.now()
-        }
-    );
+    await withMongoDb(database => {
+        return database.collection(PlantsCollectionName).replaceOne(
+            { _id: new ObjectId(model.id) },
+            {
+                ...model,
+                lastUpdateDate: Date.now()
+            }
+        );
+    });
 
     res.status(200).end();
 }
 
-async function handleDelete(req: NextApiRequest, res: NextApiResponse<ApiDeleteResponse>) {
+async function handleDelete(req: NextApiRequest, res: NextApiResponse<ApiCommandResponse>) {
     const { id } = req.body;
 
-    const { mongoDb } = await connectToMongoDb();
-
-    const result = await mongoDb
-        .collection(PlantsCollectionName)
-        .deleteOne({ _id: new ObjectId(id) });
+    const result = await withMongoDb(database => {
+        return database
+            .collection(PlantsCollectionName)
+            .deleteOne({ _id: new ObjectId(id) });
+    });
 
     if (result.deletedCount === 1) {
         res.status(200).end();
@@ -71,6 +77,6 @@ async function handleDelete(req: NextApiRequest, res: NextApiResponse<ApiDeleteR
 export default apiHandler({
     delete: handleDelete,
     get: handleGetSingle,
-    post: withModelValidation(handlePost, addPlantValidationSchema),
-    put: withModelValidation(handlePut, editPlantValidationSchema)
+    post: withBodyValidation(handlePost, addPlantValidationSchema),
+    put: withBodyValidation(handlePut, editPlantValidationSchema)
 });

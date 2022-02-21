@@ -32,19 +32,21 @@
 
 -   You can have callbacks on useMutation as well as on mutate itself. It is important to know that the callbacks on useMutation fire before the callbacks on mutate. Further, the callbacks on mutate might not fire at all if the component unmounts before the mutation has finished.
 
-That's why I think it's a good practice to separate concerns in your callbacks:
+    That's why I think it's a good practice to separate concerns in your callbacks:
 
-Do things that are absolutely necessary and logic related (like query invalidation) in the useMutation callbacks.
-Do UI related things like redirects or showing toast notifications in mutate callbacks. If the user navigated away from the current screen before the mutation finished, those will purposefully not fire.
+    Do things that are absolutely necessary and logic related (like query invalidation) in the useMutation callbacks.
+    Do UI related things like redirects or showing toast notifications in mutate callbacks. If the user navigated away from the current screen before the mutation finished, those will purposefully not fire.
 
 -   Promises returned from the mutation callbacks are awaited by React Query, and as it so happens, invalidateQueries returns a Promise. If you want your mutation to stay in loading state while your related queries update, you have to return the result of invalidateQueries from the callback:
 
 -   useMutation gives you two functions - mutate and mutateAsync. What's the difference, and when should you use which one?
 
-mutate doesn't return anything, while mutateAsync returns a Promise containing the result of the mutation. So you might be tempted to use mutateAsync when you need access to the mutation response, but I would still argue that you should almost always use mutate.
+    mutate doesn't return anything, while mutateAsync returns a Promise containing the result of the mutation. So you might be tempted to use mutateAsync when you need access to the mutation response, but I would still argue that you should almost always use mutate.
 
-You can still get access to the data or the error via the callbacks, and you don't have to worry about error handling: Since mutateAsync gives you control over the Promise, you also have to catch errors manually, or you might get an unhandled promise rejection.
+    You can still get access to the data or the error via the callbacks, and you don't have to worry about error handling: Since mutateAsync gives you control over the Promise, you also have to catch errors manually, or you might get an unhandled promise rejection.
 
 -   Great info about mutations with react-query: https://tkdodo.eu/blog/mastering-mutations-in-react-query
 
 -   When doing optimistic update with a parameterized query, it's better to update all the query cache entries otherwise we could have inconsistencies when the UI change the parameter https://github.com/tannerlinsley/react-query/discussions/1780
+
+-   When specify a "staleTime" for a query, doing a new query for the same url with different parameter will not fetch until the "staleTime" has passed.

@@ -40,7 +40,7 @@ import {
     useColorModeValue
 } from "@chakra-ui/react";
 import { DeleteIcon, EditIcon, LinkIcon, QuestionIcon, TimeIcon, ViewIcon } from "@chakra-ui/icons";
-import { EditPlantModel, LuminosityValuesAndLabels, PlantModel, WateringFrequencyValuesAndLabels, WateringTypeValuesAndLabels, editPlantValidationSchema } from "./models";
+import { EditPlantModel, LocationValuesAndLabels, LuminosityValuesAndLabels, PlantModel, WateringFrequencyValuesAndLabels, WateringTypeValuesAndLabels, editPlantValidationSchema } from "./models";
 import { RiCalendarLine, RiDropLine, RiLeafLine, RiShowersLine, RiSunLine } from "react-icons/ri";
 import { SyntheticEvent, useCallback, useRef, useState } from "react";
 import { getErrorMessage, isValid } from "@core/validation";
@@ -248,7 +248,7 @@ function PlantInfo({ plant }: PlantInfoProps) {
                 </>
             )}
             <Heading as="h4" size="small" marginTop={8} marginBottom={2}>Location</Heading>
-            <Box textTransform="capitalize">{plant?.location}</Box>
+            <Box textTransform="capitalize">{LocationValuesAndLabels[plant?.location as keyof typeof LocationValuesAndLabels]}</Box>
             {plant?.soilType && (
                 <>
                     <Heading as="h4" size="small" marginTop={8} marginBottom={2}>Soil</Heading>
@@ -315,7 +315,7 @@ function EditPlant({
 }: EditPlantProps) {
     const emit = useEventEmitter();
 
-    const { error, isError, isLoading, mutateAsync: updatePlant } = useUpdatePlant();
+    const { data, error, isError, isLoading, mutateAsync: updatePlant } = useUpdatePlant();
 
     const switchToPreview = useCallback(() => {
         emit(PlantInfoViewModeChangedEvent, { viewMode: PlantInfoViewModes.preview });
@@ -408,14 +408,9 @@ function EditPlant({
                                     <FormLabel htmlFor="location">Location</FormLabel>
                                     <Select {...getFieldProps("location")}>
                                         <option value=""></option>
-                                        <option value="bathroom-main-floor">Bathroom (main floor)</option>
-                                        <option value="bathroom-basement">Bathroom (basement)</option>
-                                        <option value="basement-front">Basement (front)</option>
-                                        <option value="basement-back">Basement (back)</option>
-                                        <option value="bedroom">Bedroom</option>
-                                        <option value="dining-room">Dining room</option>
-                                        <option value="kitchen">Kitchen</option>
-                                        <option value="living-room">Living room</option>
+                                        {Object.keys(LocationValuesAndLabels).map(x => (
+                                            <option value={x} key={x}>{LocationValuesAndLabels[x as keyof typeof LocationValuesAndLabels]}</option>
+                                        ))}
                                     </Select>
                                     <FormErrorMessage>{getErrorMessage("location", formikState)}</FormErrorMessage>
                                 </FormControl>

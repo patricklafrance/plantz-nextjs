@@ -1,15 +1,15 @@
 import { QueryKey, useQueryClient } from "react-query";
-import { UseDeleteOptions, useDelete } from "./useDelete";
+import { UseCommandOptions, useDelete } from "./useCommand";
 import { isNil, useComplexDependency } from "@core/utils";
 
 import { Nullable } from "@core/types";
 import { useCallback } from "react";
 
-export type UseOptimisticDeleteOptions<TVariables> = Omit<UseDeleteOptions<TVariables>, "invalidateKeys">;
+export type UseOptimisticDeleteOptions<TVariables> = Omit<UseCommandOptions<TVariables>, "invalidateKeys">;
 
 export interface CacheUpdater<TVariables, TFetchModel> {
     fetchKey: string;
-    updater: (variables: TVariables, data: Nullable<TFetchModel[]>) => Nullable<TFetchModel[]>;
+    updater: (variables: TVariables, data: Nullable<TFetchModel>) => Nullable<TFetchModel>;
 }
 
 export function useOptimisticDelete<TVariables, TFetchModel>(
@@ -26,7 +26,7 @@ export function useOptimisticDelete<TVariables, TFetchModel>(
             onMutate(variables);
         }
 
-        const previousEntries: [QueryKey, Nullable<TFetchModel[]>][] = [];
+        const previousEntries: [QueryKey, Nullable<TFetchModel>][] = [];
 
         Promise.all(_cacheUpdaters.map(async x => {
             // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
@@ -36,7 +36,7 @@ export function useOptimisticDelete<TVariables, TFetchModel>(
             queryClient.getQueryCache()
                 .findAll(x.fetchKey)
                 .forEach(y => {
-                    queryClient.setQueryData<Nullable<TFetchModel[]>>(y.queryKey, data => {
+                    queryClient.setQueryData<Nullable<TFetchModel>>(y.queryKey, data => {
                         previousEntries.push([y.queryKey, data]);
 
                         return x.updater(variables, data);
@@ -56,7 +56,7 @@ export function useOptimisticDelete<TVariables, TFetchModel>(
             onError(error, variables, context);
         }
 
-        previousEntries.forEach((x: [QueryKey, Nullable<TFetchModel[]>]) => {
+        previousEntries.forEach((x: [QueryKey, Nullable<TFetchModel>]) => {
             queryClient.setQueryData(x[0], x[1]);
         });
     }, [queryClient, onError]);

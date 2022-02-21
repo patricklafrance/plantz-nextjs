@@ -1,3 +1,5 @@
+import "./_app.css";
+
 import { ApiClientFailureReasons, isApiError } from "@core/api/http";
 import { ErrorBoundary, FallbackProps } from "react-error-boundary";
 import { NextRouter, withRouter } from "next/router";
@@ -9,7 +11,7 @@ import { Component } from "react";
 import { Error } from "@components";
 import { NextPage } from "next";
 import { PageLayout } from "@layouts";
-import { isNil } from "@core/utils";
+import { ReactQueryDevtools } from "react-query/devtools";
 
 export type Page = NextPage & {
     pageTitle?: string;
@@ -84,8 +86,10 @@ function App({ Component, pageProps }: AppPropsWithPageTitle) {
                     </UnauthorizedErrorBoundary>
                 </PageLayout>
             </ChakraProvider>
+            <ReactQueryDevtools />
         </QueryClientProvider>
     );
 }
 
 export default App;
+

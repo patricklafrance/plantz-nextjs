@@ -1,15 +1,10 @@
-import { PlantListView, PlantModel } from "@features/plants";
+import { PlantListView, PlantListViewProps } from "@features/plants";
+import { SearchPlantsPageSize, searchPlants } from "@features/plants/server";
 
 import { GetServerSideProps } from "next";
 import { isNil } from "@core/utils";
-import { searchPlants } from "@features/plants/server";
 
-export interface PlantsPageProps {
-    plants: PlantModel[];
-    query?: string;
-}
-
-export default function PlantsPage(props: PlantsPageProps) {
+export default function PlantsPage(props: PlantListViewProps) {
     return (
         <PlantListView {...props} />
     );
@@ -20,10 +15,18 @@ PlantsPage.pageTitle = "Plants";
 export const getServerSideProps: GetServerSideProps = async ({ query }) => {
     const searchQuery =  query.query as string | undefined;
 
-    const plants = await searchPlants(searchQuery);
+    const { results, totalCount } = await searchPlants(1, { query: searchQuery });
 
-    const props: PlantsPageProps = {
-        plants
+    const props: PlantListViewProps = {
+        plants: {
+            pageParams: [1],
+            pages: [{
+                data: results,
+                nextPage: totalCount > SearchPlantsPageSize ? 2 : null,
+                previousPage: null,
+                totalCount
+            }]
+        }
     };
 
     if (!isNil(searchQuery)) {

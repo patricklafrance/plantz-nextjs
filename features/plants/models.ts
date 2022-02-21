@@ -1,5 +1,17 @@
 import * as Yup from "yup";
 
+// Temporary since it should be dynamic.
+export const LocationValuesAndLabels = {
+    "basement-back": "Basement (back)",
+    "basement-front": "Basement (front)",
+    "bathroom-basement": "Bathroom (basement)",
+    "bathroom-main-floor": "Bathroom (main floor)",
+    "bedroom": "Bedroom",
+    "dining-room": "Dining room",
+    "kitchen": "Kitchen",
+    "living-room": "Living room"
+};
+
 export const LuminosityValuesAndLabels = {
     "high": "High",
     "low": "Low",
@@ -8,7 +20,7 @@ export const LuminosityValuesAndLabels = {
 
 export const WateringFrequencyValuesAndLabels = {
     "0.5-week": "0.5 week",
-    "1.5-weeks": "1.5 week",
+    "1.5-weeks": "1.5 weeks",
     "1-week": "1 week",
     "2.5-weeks": "2.5 weeks",
     "2-weeks": "2 weeks",
@@ -29,6 +41,7 @@ export type WateringFrequency = keyof typeof WateringFrequencyValuesAndLabels;
 export type WateringType = keyof typeof WateringTypeValuesAndLabels;
 
 export interface PlantModel {
+    // TODO: rename _id for id
     _id: string;
     creationDate: number;
     description?: string;
@@ -42,6 +55,17 @@ export interface PlantModel {
     wateringFrequency: WateringFrequency;
     wateringQuantity: string;
     wateringType: WateringType;
+}
+
+export interface PlantSummaryModel {
+    family?: string;
+    id: string;
+    location: string;
+    luminosity: Luminosity;
+    mistLeaves?: boolean;
+    name: string;
+    wateringFrequency: WateringFrequency;
+    wateringQuantity: string;
 }
 
 export interface AddPlantModel {

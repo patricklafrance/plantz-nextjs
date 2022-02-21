@@ -1,7 +1,7 @@
 import { Box, Flex, HStack, Link, Text, useColorModeValue } from "@chakra-ui/react";
 
 import { ColorModeToggler } from "./ColorModeToggler";
-import Head from "next/head";
+import { default as Head } from "next/head";
 import { default as NextLink } from "next/link";
 import { ReactNode } from "react";
 
@@ -11,6 +11,8 @@ export interface PageLayoutProps {
 }
 
 const PageMarginX: any = { base: 4, sm: 12 };
+
+export const PageMarginBottom = 12;
 
 export function PageHeader() {
     return (
@@ -23,7 +25,7 @@ export function PageHeader() {
         >
             <HStack flexGrow={1} spacing={14}>
                 <NextLink href="/plants" passHref>
-                    <Text as="a" fontSize="2xl" fontWeight="500" size="lg">Plantz</Text>
+                    <Link fontSize="2xl" fontWeight="500">Plantz</Link>
                 </NextLink>
                 <HStack spacing={8}>
                     <NextLink href="/today" passHref>
@@ -41,7 +43,7 @@ export function PageHeader() {
 
 export function PageContent({ children }: { children: ReactNode }) {
     return (
-        <Box marginX={PageMarginX} marginBottom={12}>
+        <Box flexGrow={1} marginX={PageMarginX} marginBottom={PageMarginBottom}>
             {children}
         </Box>
     );
@@ -49,12 +51,12 @@ export function PageContent({ children }: { children: ReactNode }) {
 
 export function PageLayout({ children, pageTitle }: PageLayoutProps) {
     return (
-        <Box>
+        <Flex direction="column" height="100%">
             <Head>
                 <title>{pageTitle ?? "Plantz"}</title>
             </Head>
             <PageHeader />
             <PageContent>{children}</PageContent>
-        </Box>
+        </Flex>
     );
 }

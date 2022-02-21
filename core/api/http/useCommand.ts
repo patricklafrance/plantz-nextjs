@@ -2,44 +2,43 @@ import { ApiClientError, ApiClientFailureReasons, HttpMethod, httpCommand } from
 import { ApiError, isApiError } from "./apiError";
 import { QueryKey, UseMutationOptions, UseMutationResult, useMutation, useQueryClient } from "react-query";
 
-import { ApiValidationErrorResponse } from "@core/api";
+import { ApiCommandResponse } from "@core/api";
 import { Nullable } from "@core/types";
 import { isNil } from "@core/utils";
 import { useCallback } from "react";
 
 export type InvalidateKeysFunction<TVariables> = (variables: TVariables) => QueryKey[];
 
-export interface UseCommandOptions<TVariables, TResponse> extends
-    Omit<UseMutationOptions<Nullable<TResponse>, Nullable<ApiError>, TVariables, unknown>, "mutationFn" | "mutationKey" | "useErrorBoundary"> {
-    invalidateKeys?: QueryKey[] | InvalidateKeysFunction<TVariables>;
-};
+export interface UseCommandOptions<TVariables, TData = unknown> extends
+    Omit<UseMutationOptions<TData, Nullable<ApiError>, TVariables, unknown>, "mutationFn" | "mutationKey" | "useErrorBoundary"> {
+        invalidateKeys?: QueryKey[] | InvalidateKeysFunction<TVariables>;
+    };
 
-export type UseCommandResult<TVariables, TResponse> = UseMutationResult<Nullable<TResponse>, Nullable<ApiError>, TVariables, unknown>;
+export type UseCommandResult<TVariables, TData = unknown> = UseMutationResult<TData, Nullable<ApiError>, TVariables, unknown>;
 
-export function useCommand<TVariables, TResponse extends ApiValidationErrorResponse>(url: string, method: Omit<HttpMethod, "GET">, { invalidateKeys, onSuccess, ...options }: UseCommandOptions<TVariables, TResponse> = {}) {
+function useCommand<TVariables, TData = unknown>(url: string, method: Omit<HttpMethod, "GET">, { invalidateKeys, onSuccess, ...options }: UseCommandOptions<TVariables, TData> = {}) {
     const queryClient = useQueryClient();
 
-    const mutate = useCallback(async (variables: TVariables) => {
-        const response = await httpCommand<TResponse>(url, method, variables);
+    const handleMutation = useCallback(async (variables: TVariables) => {
+        const httpResponse = await httpCommand<ApiCommandResponse>(url, method, variables);
 
-        if (!response.ok) {
-            throw new ApiError(response.error as ApiClientError);
+        if (!httpResponse.ok) {
+            throw new ApiError(httpResponse.error as ApiClientError);
         }
 
-        const data = response.data;
+        const response = httpResponse.data;
 
-        if (!isNil(data) && !isNil(data.validationErrors)) {
-            throw new ApiError(undefined, data.validationErrors);
+        if (!isNil(response) && !isNil(response.validationErrors)) {
+            throw new ApiError(undefined, response.validationErrors);
         }
 
-        return data;
+        return response?.data as TData;
     }, [method, url]);
 
     const handleSuccess = useCallback((data, variables, context) => {
         const promises: Promise<void>[] = [];
 
         if (!isNil(onSuccess)) {
-            // @ts-ignore
             const result = onSuccess(data, variables, context);
 
             if (!isNil(result)) {
@@ -63,7 +62,7 @@ export function useCommand<TVariables, TResponse extends ApiValidationErrorRespo
     }, [invalidateKeys, queryClient, onSuccess]);
 
     const _options = {
-        mutationFn: mutate,
+        mutationFn: handleMutation,
         mutationKey: url,
         onSuccess: !isNil(invalidateKeys) ? handleSuccess : onSuccess,
         retry: 1,
@@ -71,5 +70,19 @@ export function useCommand<TVariables, TResponse extends ApiValidationErrorRespo
         ...options
     };
 
-    return useMutation(_options) as UseCommandResult<TVariables, TResponse>;
+    return useMutation(_options) as UseCommandResult<TVariables, TData>;
 }
+
+export function usePost<TVariables, TData = unknown>(url: string, options: UseCommandOptions<TVariables, TData>) {
+    return useCommand<TVariables, TData>(url, "POST", options);
+}
+
+export function usePut<TVariables, TData = unknown>(url: string, options: UseCommandOptions<TVariables, TData>) {
+    return useCommand<TVariables, TData>(url, "PUT", options);
+}
+
+export function useDelete<TVariables, TData = unknown>(url: string, options: UseCommandOptions<TVariables, TData>) {
+    return useCommand<TVariables, TData>(url, "DELETE", options);
+}
+
+

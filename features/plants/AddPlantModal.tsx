@@ -1,4 +1,4 @@
-import { AddPlantModel, LuminosityValuesAndLabels, WateringFrequencyValuesAndLabels, WateringTypeValuesAndLabels, addPlantValidationSchema } from "./models";
+import { AddPlantModel, LocationValuesAndLabels, LuminosityValuesAndLabels, WateringFrequencyValuesAndLabels, WateringTypeValuesAndLabels, addPlantValidationSchema } from "./models";
 import {
     Alert,
     AlertDescription,
@@ -53,7 +53,7 @@ function _Modal({ onClose }: _ModalProps) {
         try {
             const response = await addPlant(values);
 
-            emit(PlantAddedEvent, { id: response?.data?.insertedId });
+            emit(PlantAddedEvent, { id: response.id });
             onClose();
         } catch (error: unknown) {
             // Mute uncaught error message...
@@ -123,14 +123,9 @@ function _Modal({ onClose }: _ModalProps) {
                                         <FormLabel htmlFor="location">Location</FormLabel>
                                         <Select {...getFieldProps("location")}>
                                             <option value=""></option>
-                                            <option value="bathroom-main-floor">Bathroom (main floor)</option>
-                                            <option value="bathroom-basement">Bathroom (basement)</option>
-                                            <option value="basement-front">Basement (front)</option>
-                                            <option value="basement-back">Basement (back)</option>
-                                            <option value="bedroom">Bedroom</option>
-                                            <option value="dining-room">Dining room</option>
-                                            <option value="kitchen">Kitchen</option>
-                                            <option value="living-room">Living room</option>
+                                            {Object.keys(LocationValuesAndLabels).map(x => (
+                                                <option value={x} key={x}>{LocationValuesAndLabels[x as keyof typeof LocationValuesAndLabels]}</option>
+                                            ))}
                                         </Select>
                                         <FormErrorMessage>{getErrorMessage("location", formikState)}</FormErrorMessage>
                                     </FormControl>

@@ -4,18 +4,18 @@ export interface ApiGetResponse<T> {
     data?: T;
 }
 
-export interface ApiValidationErrorResponse {
+export interface ApiCommandResponse<T = unknown> {
+    data?: T;
     validationErrors?: ModelValidationError[];
 }
 
-export interface ApiPostResponse<T> extends ApiValidationErrorResponse {
-    data?: T;
+export interface PageData<T> {
+    data: T;
+    nextPage: number | null;
+    previousPage: number | null;
+    totalCount: number;
 }
 
-export type ApiPutResponse = ApiValidationErrorResponse;
-
-export type ApiDeleteResponse = ApiValidationErrorResponse;
-
-export interface InsertedIdData {
-    insertedId: string;
+export interface IdentityData {
+    id: string;
 }

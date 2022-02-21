@@ -1,12 +1,19 @@
-import { PlantsCollectionName, connectToMongoDb, toStringId } from "@core/mongoDb/server";
+import { PlantsCollectionName, toSerializableId, withMongoDb } from "@core/mongoDb/server";
 
-import { ObjectId } from "mongodb";
-import { PlantModel } from "./models";
-import { isNil } from "@core/utils";
+import { PlantSummaryModel } from "./models";
 
-export async function searchPlants(query?: string) {
-    const { mongoDb } = await connectToMongoDb();
+export const SearchPlantsPageSize = 50;
 
+export interface SearchPlantsOptions {
+    query?: string;
+}
+
+export interface SearchPlantsResult {
+    results: PlantSummaryModel[];
+    totalCount: number;
+}
+
+export function searchPlants(page: number = 1, { query }: SearchPlantsOptions = {}) {
     const params = query
         ? {
             $text: {
@@ -15,24 +22,34 @@ export async function searchPlants(query?: string) {
         }
         : {};
 
-    const plants = await mongoDb
-        .collection(PlantsCollectionName)
-        .find(params)
-        // eslint-disable-next-line sort-keys-fix/sort-keys-fix
-        .sort({ name: 1, family: 1, lastUpdateDate: -1 })
-        .toArray();
+    return withMongoDb<SearchPlantsResult>(async database => {
+        const count = await database
+            .collection(PlantsCollectionName)
+            .countDocuments(params);
 
-    return plants.map((x: any) => toStringId<PlantModel>(x));
-}
+        const documents = await database
+            .collection(PlantsCollectionName)
+            .find(params)
+            .limit(SearchPlantsPageSize)
+            .skip((page - 1) * SearchPlantsPageSize)
+            // eslint-disable-next-line sort-keys-fix/sort-keys-fix
+            .sort({ location: 1, name: 1, family: 1, lastUpdateDate: -1 })
+            .toArray();
 
-export async function findPlant(id: string) {
-    const { mongoDb } = await connectToMongoDb();
+        const plants =  documents.map(x => ({
+            family: x.family,
+            id: toSerializableId(x._id),
+            location: x.location,
+            luminosity: x.luminosity,
+            mistLeaves: x.mistLeaves,
+            name: x.name,
+            wateringFrequency: x.wateringFrequency,
+            wateringQuantity: x.wateringQuantity
+        }));
 
-    const plant = await mongoDb
-        .collection(PlantsCollectionName)
-        .findOne({ _id: new ObjectId(id) });
-
-    return !isNil(plant)
-        ? toStringId<PlantModel>(plant)
-        : plant;
+        return {
+            results: plants as PlantSummaryModel[],
+            totalCount: count
+        };
+    });
 }

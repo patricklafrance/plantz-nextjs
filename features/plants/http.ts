@@ -1,21 +1,24 @@
-import { AddPlantModel, EditPlantModel, PlantModel } from "./models";
-import { UseDeleteOptions, useFetch, useOptimisticDelete, usePost, usePut } from "@core/api/http";
+import { AddPlantModel, EditPlantModel, PlantModel, PlantSummaryModel } from "./models";
+import { IdentityData, PageData } from "@core/api";
+import { UseOptimisticDeleteOptions, updateInfiniteFetchPages, useFetch, useInfiniteFetch, useOptimisticDelete, usePost, usePut } from "@core/api/http";
 import { useCallback, useMemo } from "react";
 
-import { InsertedIdData } from "@core/api";
+import { InfiniteData } from "react-query";
 
-const SearchPlantsUrl = "/api/plants/search";
-const FetchSinglePlantUrl = "/api/plants";
+export const SearchPlantsUrl = "/api/plants/search";
+export const FetchSinglePlantUrl = "/api/plants";
 
 export interface UseSearchPlantsOptions {
-    initialData?: PlantModel[],
-    query?: string
+    initialData?: InfiniteData<PageData<PlantSummaryModel[]>>;
+    query?: string;
 }
 
 export function useSearchPlants({ initialData, query }: UseSearchPlantsOptions = {}) {
-    return useFetch<PlantModel[]>(SearchPlantsUrl, {
+    return useInfiniteFetch<PlantSummaryModel[]>(SearchPlantsUrl, {
         initialData,
         params: { query: query ?? "" }
+        // https://react-query.tanstack.com/guides/initial-query-data
+        // staleTime: 5000
     });
 }
 
@@ -26,7 +29,7 @@ export function useFetchSinglePlant(id: string) {
 }
 
 export function useAddPlant() {
-    return usePost<AddPlantModel, InsertedIdData>("/api/plants", {
+    return usePost<AddPlantModel, IdentityData>("/api/plants", {
         invalidateKeys: useMemo(() => [SearchPlantsUrl], [])
     });
 }
@@ -45,11 +48,18 @@ export interface UseDeletePlantVariables {
     id: string
 }
 
-export function useDeletePlant(options: UseDeleteOptions<UseDeletePlantVariables>) {
+export function useDeletePlant(options: UseOptimisticDeleteOptions<UseDeletePlantVariables>) {
     const cacheUpdaters = [{
         fetchKey: SearchPlantsUrl,
-        updater: useCallback(({ id }, data) => data?.filter((x: PlantModel) => x._id !== id), [])
+        updater: useCallback(({ id }, data) => {
+            return updateInfiniteFetchPages<PlantSummaryModel[]>(data, (pageData, totalCount) => ({
+                data: pageData.filter((y: any) => y.id !== id),
+                totalCount: totalCount - 1
+            }));
+        }, [])
     }];
 
-    return useOptimisticDelete<UseDeletePlantVariables, PlantModel>("/api/plants", cacheUpdaters, options);
+    // return useOptimisticDelete<UseDeletePlantVariables, InfiniteData<PageData<PlantSummaryModel[]>>>("/api/plants", cacheUpdaters, options);
+    // TODO: fix typing with cache update
+    return useOptimisticDelete<UseDeletePlantVariables, PlantSummaryModel[]>("/api/plants", cacheUpdaters, options);
 }

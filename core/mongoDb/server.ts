@@ -1,3 +1,4 @@
 export * from "./collections";
-export * from "./connectToMongoDb";
-export * from "./toStringId";
+export * from "./toSerializableDocument";
+export * from "./toSerializableId";
+export * from "./withMongoDb";

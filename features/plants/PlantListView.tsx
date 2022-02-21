@@ -8,16 +8,17 @@ import {
     Box,
     Button,
     Divider,
+    Flex,
     FormControl,
     FormErrorMessage,
     Grid,
     HStack,
-    Heading,
     IconButton,
     Input,
     InputGroup,
     InputRightElement,
     Link,
+    Spinner,
     Stack,
     StyleProps,
     Tag,
@@ -28,20 +29,24 @@ import {
     useToast
 } from "@chakra-ui/react";
 import { ApiErrorBoundary, ApiErrorBoundaryFallbackProps, buildUrl } from "@core/api/http";
+import { AutoSizer, CellMeasurer, CellMeasurerCache, Index, InfiniteLoader, ListRowProps, List as VirtualizedList, WindowScroller } from "react-virtualized";
+import { CSSProperties, ReactNode, SyntheticEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CloseIcon, DeleteIcon, PlusSquareIcon, SearchIcon, TimeIcon, ViewIcon } from "@chakra-ui/icons";
 import { Error, NoResults } from "@components";
+import { LocationValuesAndLabels, LuminosityValuesAndLabels, PlantSummaryModel, SearchPlantsModel, WateringFrequencyValuesAndLabels, searchPlantsValidationSchema } from "./models";
 import { NoResultsClearedEvent, PlantDeletedEvent, SearchQueryChangedData, SearchQueryChangedEvent } from "./events";
 import { PlantInfoModal, PlantInfoViewMode, PlantInfoViewModes } from "./PlantInfoModal";
-import { PlantModel, SearchPlantsModel, WateringTypeValuesAndLabels, searchPlantsValidationSchema } from "./models";
-import { ReactNode, SyntheticEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { isNil, isNilOrEmpty } from "@core/utils";
 import { useDeletePlant, useSearchPlants } from "./http";
 import { useEventEmitter, useEventSubcriber } from "@core/events";
 
 import { AddPlantModal } from "./AddPlantModal";
+import { InfiniteData } from "react-query";
 import { default as NextLink } from "next/link";
+import { PageData } from "@core/api";
+import { PageMarginBottom } from "@layouts";
 import { PlantListUrl } from "@routes";
-import { RiLeafLine } from "react-icons/ri";
-import { isNilOrEmpty } from "@core/utils";
+import { RiMapPinLine } from "react-icons/ri";
 import { preserveListQueryParameters } from "./preserveListQueryParameters";
 import { transparentize } from "@chakra-ui/theme-tools";
 import { useFormik } from "formik";
@@ -49,7 +54,7 @@ import { useFormikState } from "@core/validation";
 import { useRouter } from "next/router";
 
 export interface PlantListViewProps {
-    plants: PlantModel[];
+    plants: InfiniteData<PageData<PlantSummaryModel[]>>,
     query?: string;
 }
 
@@ -61,7 +66,7 @@ function prettyWaterFrequency(wateringFrequency: string) {
         case "4-weeks":
             return "month";
         default:
-            return WateringTypeValuesAndLabels[wateringFrequency as keyof typeof WateringTypeValuesAndLabels];
+            return WateringFrequencyValuesAndLabels[wateringFrequency as keyof typeof WateringFrequencyValuesAndLabels];
     }
     /* eslint-enable indent */
 }
@@ -209,22 +214,20 @@ function ListHeader({ query = "" }: ListHeaderProps) {
 
 interface ViewLinkProps {
     children: ReactNode;
-    plant: PlantModel
+    plantId: string;
 }
 
-function ViewLink({ children, plant }: ViewLinkProps) {
+function ViewLink({ children, plantId }: ViewLinkProps) {
     const router = useRouter();
-
-    const { _id } = plant;
 
     const href = buildUrl(PlantListUrl, {
         ...preserveListQueryParameters(router.query),
         action: "view",
-        id: plant._id,
+        id: plantId,
         viewMode: PlantInfoViewModes.preview
     });
 
-    const as = buildUrl(`${PlantListUrl}/${PlantInfoViewModes.preview}/${_id}`, preserveListQueryParameters(router.query));
+    const as = buildUrl(`${PlantListUrl}/${PlantInfoViewModes.preview}/${plantId}`, preserveListQueryParameters(router.query));
 
     return (
         <NextLink
@@ -239,25 +242,12 @@ function ViewLink({ children, plant }: ViewLinkProps) {
 }
 
 interface ViewButtonProps {
-    plant: PlantModel
+    plantId: string;
 }
 
-function ViewButton({ plant }: ViewButtonProps) {
-    const router = useRouter();
-
-    const { _id } = plant;
-
-    const href = buildUrl(PlantListUrl, {
-        ...preserveListQueryParameters(router.query),
-        action: "view",
-        id: plant._id,
-        viewMode: PlantInfoViewModes.preview
-    });
-
-    const as = buildUrl(`${PlantListUrl}/${PlantInfoViewModes.preview}/${_id}`, preserveListQueryParameters(router.query));
-
+function ViewButton({ plantId }: ViewButtonProps) {
     return (
-        <ViewLink plant={plant}>
+        <ViewLink plantId={plantId}>
             <IconButton
                 as="a"
                 icon={<ViewIcon />}
@@ -271,12 +261,11 @@ function ViewButton({ plant }: ViewButtonProps) {
 }
 
 interface DeleteButtonProps {
-    plant: PlantModel;
+    plantId: string;
+    plantName: string;
 }
 
-function DeleteButton({ plant }: DeleteButtonProps) {
-    const { _id, name } = plant;
-
+function DeleteButton({ plantId, plantName }: DeleteButtonProps) {
     const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
 
     const cancelButtonRef = useRef<HTMLButtonElement>(null);
@@ -286,15 +275,15 @@ function DeleteButton({ plant }: DeleteButtonProps) {
     const toast = useToast();
 
     const handleSuccess = useCallback(() => {
-        emit(PlantDeletedEvent, { id: _id });
-    }, [emit, _id]);
+        emit(PlantDeletedEvent, { id: plantId });
+    }, [emit, plantId]);
 
     const handleError = useCallback(() => {
-        const toastId = `plant-delete-failed-${_id}`;
+        const toastId = `plant-delete-failed-${plantId}`;
 
         if (!toast.isActive(toastId)) {
             toast({
-                description: <Text>Cannot delete plant <Text as="em">{name}</Text></Text>,
+                description: <Text>Cannot delete plant <Text as="em">{plantName}</Text></Text>,
                 duration: 9000,
                 id: toastId,
                 isClosable: true,
@@ -303,7 +292,7 @@ function DeleteButton({ plant }: DeleteButtonProps) {
                 title: "Delete failed"
             });
         }
-    }, [_id, name, toast]);
+    }, [plantId, plantName, toast]);
 
     const { mutate: deletePlant } = useDeletePlant({
         onError: handleError,
@@ -319,9 +308,9 @@ function DeleteButton({ plant }: DeleteButtonProps) {
     }, [setIsConfirmationOpen]);
 
     const handleConfirm = useCallback(() => {
-        deletePlant({ id: _id });
+        deletePlant({ id: plantId });
         setIsConfirmationOpen(false);
-    }, [deletePlant,  _id, setIsConfirmationOpen]);
+    }, [deletePlant, plantId, setIsConfirmationOpen]);
 
     return (
         <>
@@ -344,7 +333,7 @@ function DeleteButton({ plant }: DeleteButtonProps) {
                             Delete a plant
                         </AlertDialogHeader>
                         <AlertDialogBody>
-                            Are you sure you want to delete <Text as="em">{name}</Text>?
+                            Are you sure you want to delete <Text as="em">{plantName}</Text>?
                         </AlertDialogBody>
                         <AlertDialogFooter>
                             <Button onClick={handleCancel} ref={cancelButtonRef}>
@@ -362,29 +351,32 @@ function DeleteButton({ plant }: DeleteButtonProps) {
 }
 
 interface ListItemProps extends StyleProps {
-    plant: PlantModel
+    plant: PlantSummaryModel;
+    style?: CSSProperties;
 }
 
-function ListItem({ plant, ...rest }: ListItemProps) {
+function ListItem({ plant, style }: ListItemProps) {
     return (
         <Stack
-            {...rest}
             direction={{ base: "column", sm: "row" }}
             spacing={{ base: 6, lg: 12 }}
             paddingTop={4}
             paddingBottom={4}
+            paddingLeft={2}
+            paddingRight={2}
+            style={style}
             _hover={{
                 backgroundColor: transparentize(useColorModeValue("gray.100", "gray.700"), 0.3)
             }}
         >
             <Grid
-                templateAreas={{ base: "\"name watering-qty watering-type\" \"tags tags tags\"", lg: "\"name watering-qty watering-type tags\"" }}
+                templateAreas={{ base: "\"name watering-qty luminosity\" \"tags tags tags\"", lg: "\"name watering-qty luminosity tags\"" }}
                 templateColumns={{ lg: "300px 140px 140px auto" }}
                 gap={{ base: 6, lg: 0 }}
                 flexGrow={1}
             >
                 <Box gridArea="name">
-                    <ViewLink plant={plant}>
+                    <ViewLink plantId={plant.id}>
                         <Link fontSize="lg" fontWeight="500">{plant.name}</Link>
                     </ViewLink>
                     <Text color="gray.400">{plant.family}</Text>
@@ -393,17 +385,21 @@ function ListItem({ plant, ...rest }: ListItemProps) {
                     <Text fontSize="lg" fontWeight="500">{plant.wateringQuantity}</Text>
                     <Text color="gray.400">every {prettyWaterFrequency(plant.wateringFrequency)}</Text>
                 </Box>
-                <Box gridArea="watering-type">
-                    <Text fontSize="lg" fontWeight="500">{WateringTypeValuesAndLabels[plant.wateringType]}</Text>
-                    <Text color="gray.400">watering</Text>
+                <Box gridArea="luminosity">
+                    <Text fontSize="lg" fontWeight="500">{LuminosityValuesAndLabels[plant.luminosity as keyof typeof LuminosityValuesAndLabels]}</Text>
+                    <Text color="gray.400">luminosity</Text>
                 </Box>
                 <HStack gridArea="tags" spacing={4}>
-                    {plant.mistLeaves && (
+                    {/* {plant.mistLeaves && (
                         <Tag colorScheme="green" size="lg">
                             <TagLeftIcon as={RiLeafLine} />
                             <TagLabel>Mist leaves</TagLabel>
                         </Tag>
-                    )}
+                    )} */}
+                    <Tag colorScheme="cyan" size="lg">
+                        <TagLeftIcon as={RiMapPinLine} />
+                        <TagLabel>{LocationValuesAndLabels[plant.location as keyof typeof LocationValuesAndLabels]}</TagLabel>
+                    </Tag>
                     <Tag colorScheme="pink" size="lg">
                         <TagLeftIcon as={TimeIcon} />
                         <TagLabel>Due date</TagLabel>
@@ -411,90 +407,147 @@ function ListItem({ plant, ...rest }: ListItemProps) {
                 </HStack>
             </Grid>
             <HStack spacing={{ base: 6, sm: 4 }}>
-                <ViewButton plant={plant} />
-                <DeleteButton plant={plant} />
+                <ViewButton plantId={plant.id} />
+                <DeleteButton plantId={plant.id} plantName={plant.name} />
             </HStack>
         </Stack>
     );
 }
 
-interface ListProps {
-    plants: PlantModel[];
-    query?: string;
-}
+const rowMeasurementsCache = new CellMeasurerCache({
+    defaultHeight: 100,
+    fixedWidth: true
+});
 
-function List({ plants, query }: ListProps) {
-    const { data: items } = useSearchPlants({ initialData: plants, query });
+function List({ plants, query }: PlantListViewProps) {
+    const { data, fetchNextPage, hasNextPage, isFetchingNextPage, totalCount } = useSearchPlants({ initialData: plants, query });
 
     const emit = useEventEmitter();
 
-    const byLocation = useMemo(() => {
-        const result = items?.reduce((acc, x: PlantModel) => {
-            if (acc[x.location]) {
-                acc[x.location].push(x);
-            } else {
-                acc[x.location] = [x];
-            }
+    const flatPlants = useMemo(() => data?.pages.flatMap(x => x.data) ?? [], [data?.pages]);
 
-            return acc;
-        }, {} as Record<string, PlantModel[]>) ?? {};
+    // If there are more rows to be loaded then add an extra row to hold a loading indicator.
+    const rowCount = useMemo(() => hasNextPage ? flatPlants.length + 1 : flatPlants.length, [hasNextPage, flatPlants]);
 
-        return Object.keys(result).sort().reduce((acc, x: string) => {
-            acc[x] = result[x];
+    // Every row is loaded except for our loading indicator row.
+    const isRowLoaded = useCallback(({ index }: Index) => {
+        return !hasNextPage || index < flatPlants.length;
+    }, [hasNextPage, flatPlants]);
 
-            return acc;
-        }, {} as Record<string, PlantModel[]>);
-    }, [items]);
+    const renderRow = useCallback(({ index, key, parent, style: style }: ListRowProps) => {
+        if (!isRowLoaded({ index })) {
+            return (
+                <Flex justifyContent="center" style={style} key={key}>
+                    <Spinner />
+                </Flex>
+            );
+        }
+
+        const plant = flatPlants[index];
+
+        let markup: ReactNode;
+
+        let type: "item-with-divider" | "item";
+
+        if (index + 1 !== totalCount) {
+            type = "item-with-divider";
+
+            markup = (
+                <Box id={`container-${index}`} style={style}>
+                    <ListItem plant={plant} />
+                    <Divider id={`divider-${index}`} marginTop={2} marginBottom={2} />
+                </Box>
+            );
+        } else {
+            type = "item";
+
+            markup = (
+                <ListItem plant={plant} style={style} />
+            );
+        }
+
+        return (
+            <CellMeasurer
+                cache={rowMeasurementsCache}
+                columnIndex={0}
+                rowIndex={index}
+                parent={parent}
+                // Since the items have a dynamic height this make sure we don't get the wrong height if an item change position.
+                keyMapper={(x: number) => `${type}-${x}`}
+                key={key}
+            >
+                {markup}
+            </CellMeasurer>
+        );
+    }, [flatPlants, isRowLoaded, totalCount]);
+
+    const handleLoadMore = useCallback(() => {
+        return fetchNextPage();
+    }, [fetchNextPage]);
 
     const handleClearNoResults = useCallback(() => {
         emit(SearchQueryChangedEvent, { query: undefined });
         emit(NoResultsClearedEvent);
     }, [emit]);
 
-    if (items?.length === 0) {
+    if (!isFetchingNextPage && data?.pages[0]?.data.length === 0) {
         return (
-            <NoResults onClear={handleClearNoResults}>
+            <NoResults onClear={!isNil(query) ? handleClearNoResults : undefined}>
                 No plants match your search criteria, please try again.
             </NoResults>
         );
     }
 
     return (
-        <>
-            {Object.keys(byLocation).map(x => (
-                <Stack spacing={6} key={x}>
-                    <Box>
-                        <Heading
-                            as="h3"
-                            size="lg"
-                            textTransform="capitalize"
-                            marginBottom={7}
-                        >
-                            {x}
-                        </Heading>
-                        <Stack>
-                            {byLocation[x].map((y: PlantModel, index) => (
-                                <Box
-                                    _last={{
-                                        marginBottom: 7
-                                    }}
-                                    key={index}
-                                >
-                                    <ListItem plant={y} />
-                                    {index + 1 !== byLocation[x].length && (
-                                        <Divider marginTop={2} />
-                                    )}
-                                </Box>
-                            ))}
-                        </Stack>
-                    </Box>
-                </Stack>
-            ))}
-        </>
+        // Must hardcode the marginBottom from PageLayout again otherwise it not's applied when the bottom of the list is reached.
+        <Box marginBottom={PageMarginBottom}>
+            <Text
+                as="span"
+                fontSize="2xl"
+                fontWeight="500"
+                display="block"
+                marginLeft={2}
+                marginBottom={5}
+            >
+                Found {totalCount} plants...
+            </Text>
+            {/* "serverHeight" doesn't seems to do anything. */}
+            <WindowScroller serverHeight={800} serverWidth={800}>
+                {({ height, isScrolling, onChildScroll, scrollTop }) => (
+                    <AutoSizer disableHeight>
+                        {({ width }) => (
+                            <InfiniteLoader
+                                isRowLoaded={isRowLoaded}
+                                rowCount={rowCount}
+                                loadMoreRows={handleLoadMore}
+                            >
+                                {({ onRowsRendered, registerChild }) => (
+                                    <VirtualizedList
+                                        height={height}
+                                        // Without "autoHeight", initially the list will be hidden because of a weird inline overflow style.
+                                        autoHeight
+                                        width={width}
+                                        rowHeight={rowMeasurementsCache.rowHeight}
+                                        rowCount={rowCount}
+                                        rowRenderer={renderRow}
+                                        isScrolling={isScrolling}
+                                        scrollTop={scrollTop}
+                                        onRowsRendered={onRowsRendered}
+                                        onScroll={onChildScroll}
+                                        deferredMeasurementCache={rowMeasurementsCache}
+                                        ref={registerChild}
+                                    />
+                                )}
+                            </InfiniteLoader>
+                        )}
+                    </AutoSizer>
+                )}
+            </WindowScroller>
+        </Box>
     );
 }
 
-export function PlantListView({ plants = [], query: initialQuery }: PlantListViewProps) {
+export function PlantListView({ plants, query: initialQuery }: PlantListViewProps) {
     const router = useRouter();
 
     const [query, setQuery] = useState(initialQuery);
@@ -505,14 +558,14 @@ export function PlantListView({ plants = [], query: initialQuery }: PlantListVie
     }, [initialQuery]);
 
     useEventSubcriber(SearchQueryChangedEvent, ({ query: newQuery }: SearchQueryChangedData) => {
+        setQuery(newQuery);
+
         const url = buildUrl(PlantListUrl, {
             ...preserveListQueryParameters(router.query),
             query: newQuery
         });
 
-        // Will rehydrate the page with the data returned by the page "getServerSideProps".
-        // To prevent rehydrating, use "shallow".
-        router.push(url);
+        router.push(url, undefined, { shallow: true });
     });
 
     const handleCloseModal = useCallback(() => {
@@ -522,7 +575,7 @@ export function PlantListView({ plants = [], query: initialQuery }: PlantListVie
     }, [router]);
 
     return (
-        <>
+        <Flex direction="column" height="100%">
             <ListHeader query={query} />
             <ApiErrorBoundary fallbackRender={({ error, resetErrorBoundary }: ApiErrorBoundaryFallbackProps) => (
                 <Error
@@ -543,6 +596,6 @@ export function PlantListView({ plants = [], query: initialQuery }: PlantListVie
                 onClose={handleCloseModal}
                 plantId={router.query.id as string}
             />
-        </>
+        </Flex>
     );
 }

@@ -1,9 +1,8 @@
 import { isNil, isNilOrEmpty, useComplexDependency } from "@core/utils";
 
-import { Nullable } from "@core/types";
 import { useMemo } from "react";
 
-export function toUrlSearchParams(params?: Record<string, Nullable<string>>) {
+export function toUrlSearchParams(params?: Record<string, any>) {
     if (isNil(params)) {
         return "";
     }
@@ -29,7 +28,7 @@ export function toUrlSearchParams(params?: Record<string, Nullable<string>>) {
     return instance.toString();
 }
 
-export function buildUrl(url: string, params?: Record<string, Nullable<string>> | URLSearchParams) {
+export function buildUrl(url: string, params?: Record<string, any> | URLSearchParams) {
     const searchParams = params instanceof URLSearchParams ? params.toString() : toUrlSearchParams(params);
 
     return isNilOrEmpty(searchParams)
@@ -37,10 +36,10 @@ export function buildUrl(url: string, params?: Record<string, Nullable<string>> 
         : `${url}?${searchParams}`;
 }
 
-export function useUrl(url: string, params?: Record<string, Nullable<string>>) {
+export function useUrl(url: string, params?: Record<string, any>) {
     const _params = useComplexDependency(params);
 
     return useMemo(() => {
-        return buildUrl(url, _params as Record<string, Nullable<string>>);
+        return buildUrl(url, _params as Record<string, any>);
     }, [url, _params]);
 }
