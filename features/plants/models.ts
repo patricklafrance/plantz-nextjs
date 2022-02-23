@@ -1,11 +1,11 @@
 import * as Yup from "yup";
 
-// Temporary since it should be dynamic.
+// Temporary since locations should be dynamic.
 export const LocationValuesAndLabels = {
-    "basement-back": "Basement (back)",
-    "basement-front": "Basement (front)",
-    "bathroom-basement": "Bathroom (basement)",
-    "bathroom-main-floor": "Bathroom (main floor)",
+    "basement-back": "Basement (Back)",
+    "basement-front": "Basement (Front)",
+    "bathroom-basement": "Bathroom (Basement)",
+    "bathroom-main-floor": "Bathroom (Main floor)",
     "bedroom": "Bedroom",
     "dining-room": "Dining room",
     "kitchen": "Kitchen",
@@ -66,6 +66,7 @@ export interface PlantSummaryModel {
     name: string;
     wateringFrequency: WateringFrequency;
     wateringQuantity: string;
+    wateringType: WateringType;
 }
 
 export interface AddPlantModel {

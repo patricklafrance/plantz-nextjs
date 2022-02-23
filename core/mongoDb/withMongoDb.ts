@@ -5,6 +5,8 @@ import { isNil } from "@core/utils";
 const Uri = process.env.MONGODB_URI;
 const DbName = process.env.MONGODB_DB;
 
+// TODO: should probably use a Nextjs middleware to have a database connection per request.
+
 // /**
 //  * Global is used here to maintain a cached connection across hot reloads
 //  * in development. This prevents connections growing exponentiatlly
@@ -31,14 +33,3 @@ export async function withMongoDb<T>(execute: (database: Db, client: MongoClient
 
     return result;
 }
-
-// export async function withMongoDb<T>(execute: WithMongoDbExecuteFunction<T>) {
-//     const client = await MongoClient.connect(Uri as string);
-//     const database = await client.db(DbName);
-
-//     const result = await execute(database, client);
-
-//     client.close();
-
-//     return result;
-// }

@@ -5,3 +5,4 @@ export * from "./useCommand";
 export * from "./useFetch";
 export * from "./useOptimisticDelete";
 export * from "./useInfiniteFetch";
+export * from "./prefetch";

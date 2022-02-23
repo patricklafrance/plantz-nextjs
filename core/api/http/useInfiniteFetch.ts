@@ -6,7 +6,7 @@ import { isNil, useComplexDependency } from "@core/utils";
 import { ApiError } from "./apiError";
 import { buildUrl } from "./useUrl";
 import { useCallback } from "react";
-import { useFetchKey } from "./useFetch";
+import { useFetchKey } from "./useFetchKey";
 
 export interface UseInfiniteFetchOptions<TModel> extends
     Omit<UseInfiniteQueryOptions<TModel, ApiError, TModel>, "getNextPageParam" | "getPreviousPageParam" | "queryFn" | "queryKey" | "useErrorBoundary"> {
@@ -44,7 +44,6 @@ export function useInfiniteFetch<TModel>(url: string, { initialData, params, ...
     const _options = {
         getNextPageParam: useCallback((lastPage: PageData<TModel>) => !isNil(lastPage.nextPage) ? lastPage.nextPage : false, []),
         getPreviousPageParam: useCallback((lastPage: PageData<TModel>) => !isNil(lastPage.previousPage) ? lastPage.previousPage : false, []),
-        // initialData: _initialData,
         initialData,
         queryFn: handleQuery,
         queryKey,

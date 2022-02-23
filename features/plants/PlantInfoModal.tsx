@@ -45,7 +45,7 @@ import { RiCalendarLine, RiDropLine, RiLeafLine, RiShowersLine, RiSunLine } from
 import { SyntheticEvent, useCallback, useRef, useState } from "react";
 import { getErrorMessage, isValid } from "@core/validation";
 import { useEventEmitter, useEventSubcriber } from "@core/events";
-import { useFetchSinglePlant, useUpdatePlant } from "./http";
+import { useFetchPlant, useUpdatePlant } from "./http";
 
 import { Formik } from "formik";
 import { PlantListUrl } from "@routes";
@@ -248,7 +248,7 @@ function PlantInfo({ plant }: PlantInfoProps) {
                 </>
             )}
             <Heading as="h4" size="small" marginTop={8} marginBottom={2}>Location</Heading>
-            <Box textTransform="capitalize">{LocationValuesAndLabels[plant?.location as keyof typeof LocationValuesAndLabels]}</Box>
+            <Box>{LocationValuesAndLabels[plant?.location as keyof typeof LocationValuesAndLabels]}</Box>
             {plant?.soilType && (
                 <>
                     <Heading as="h4" size="small" marginTop={8} marginBottom={2}>Soil</Heading>
@@ -544,7 +544,7 @@ function _Modal({
 
     const [isSaving, setIsSaving] = useState(false);
 
-    const { data: plant } = useFetchSinglePlant(plantId);
+    const { data: plant } = useFetchPlant(plantId);
 
     useEventSubcriber(PlantInfoViewModeChangedEvent, ({ viewMode }: PlantInfoViewModeChangedData) => {
         setViewMode(viewMode);

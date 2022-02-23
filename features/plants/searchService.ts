@@ -44,7 +44,8 @@ export function searchPlants(page: number = 1, { query }: SearchPlantsOptions = 
             mistLeaves: x.mistLeaves,
             name: x.name,
             wateringFrequency: x.wateringFrequency,
-            wateringQuantity: x.wateringQuantity
+            wateringQuantity: x.wateringQuantity,
+            wateringType: x.wateringType
         }));
 
         return {

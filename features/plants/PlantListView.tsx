@@ -33,15 +33,15 @@ import { AutoSizer, CellMeasurer, CellMeasurerCache, Index, InfiniteLoader, List
 import { CSSProperties, ReactNode, SyntheticEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CloseIcon, DeleteIcon, PlusSquareIcon, SearchIcon, TimeIcon, ViewIcon } from "@chakra-ui/icons";
 import { Error, NoResults } from "@components";
-import { LocationValuesAndLabels, LuminosityValuesAndLabels, PlantSummaryModel, SearchPlantsModel, WateringFrequencyValuesAndLabels, searchPlantsValidationSchema } from "./models";
+import { InfiniteData, useQueryClient } from "react-query";
+import { LocationValuesAndLabels, PlantSummaryModel, SearchPlantsModel, WateringFrequencyValuesAndLabels, WateringTypeValuesAndLabels, searchPlantsValidationSchema } from "./models";
 import { NoResultsClearedEvent, PlantDeletedEvent, SearchQueryChangedData, SearchQueryChangedEvent } from "./events";
 import { PlantInfoModal, PlantInfoViewMode, PlantInfoViewModes } from "./PlantInfoModal";
 import { isNil, isNilOrEmpty } from "@core/utils";
-import { useDeletePlant, useSearchPlants } from "./http";
+import { prefetchPlant, useDeletePlant, useSearchPlants } from "./http";
 import { useEventEmitter, useEventSubcriber } from "@core/events";
 
 import { AddPlantModal } from "./AddPlantModal";
-import { InfiniteData } from "react-query";
 import { default as NextLink } from "next/link";
 import { PageData } from "@core/api";
 import { PageMarginBottom } from "@layouts";
@@ -246,6 +246,11 @@ interface ViewButtonProps {
 }
 
 function ViewButton({ plantId }: ViewButtonProps) {
+    const queryClient = useQueryClient();
+
+    // TODO: what happens if fetch fail?
+    const handleMouseEnter = useCallback(() => prefetchPlant(queryClient, plantId), [plantId, queryClient]);
+
     return (
         <ViewLink plantId={plantId}>
             <IconButton
@@ -255,6 +260,7 @@ function ViewButton({ plantId }: ViewButtonProps) {
                 size="lg"
                 isRound
                 title="View plant info"
+                onMouseEnter={handleMouseEnter}
             />
         </ViewLink>
     );
@@ -370,7 +376,7 @@ function ListItem({ plant, style }: ListItemProps) {
             }}
         >
             <Grid
-                templateAreas={{ base: "\"name watering-qty luminosity\" \"tags tags tags\"", lg: "\"name watering-qty luminosity tags\"" }}
+                templateAreas={{ base: "\"name watering-qty watering-type\" \"tags tags tags\"", lg: "\"name watering-qty watering-type tags\"" }}
                 templateColumns={{ lg: "300px 140px 140px auto" }}
                 gap={{ base: 6, lg: 0 }}
                 flexGrow={1}
@@ -385,9 +391,9 @@ function ListItem({ plant, style }: ListItemProps) {
                     <Text fontSize="lg" fontWeight="500">{plant.wateringQuantity}</Text>
                     <Text color="gray.400">every {prettyWaterFrequency(plant.wateringFrequency)}</Text>
                 </Box>
-                <Box gridArea="luminosity">
-                    <Text fontSize="lg" fontWeight="500">{LuminosityValuesAndLabels[plant.luminosity as keyof typeof LuminosityValuesAndLabels]}</Text>
-                    <Text color="gray.400">luminosity</Text>
+                <Box gridArea="watering-type">
+                    <Text fontSize="lg" fontWeight="500">{WateringTypeValuesAndLabels[plant.wateringType as keyof typeof WateringTypeValuesAndLabels]}</Text>
+                    <Text color="gray.400">watering</Text>
                 </Box>
                 <HStack gridArea="tags" spacing={4}>
                     {/* {plant.mistLeaves && (

@@ -1,9 +1,8 @@
 import { AddPlantModel, EditPlantModel, PlantModel, PlantSummaryModel } from "./models";
 import { IdentityData, PageData } from "@core/api";
-import { UseOptimisticDeleteOptions, updateInfiniteFetchPages, useFetch, useInfiniteFetch, useOptimisticDelete, usePost, usePut } from "@core/api/http";
+import { InfiniteData, QueryClient } from "react-query";
+import { UseOptimisticDeleteOptions, prefetchSingle, updateInfiniteFetchPages, useFetchCollection, useInfiniteFetch, useOptimisticDelete, usePost, usePut } from "@core/api/http";
 import { useCallback, useMemo } from "react";
-
-import { InfiniteData } from "react-query";
 
 export const SearchPlantsUrl = "/api/plants/search";
 export const FetchSinglePlantUrl = "/api/plants";
@@ -18,12 +17,13 @@ export function useSearchPlants({ initialData, query }: UseSearchPlantsOptions =
         initialData,
         params: { query: query ?? "" }
         // https://react-query.tanstack.com/guides/initial-query-data
+        // https://github.com/tannerlinsley/react-query/discussions/1685#discussioncomment-2191280
         // staleTime: 5000
     });
 }
 
-export function useFetchSinglePlant(id: string) {
-    return useFetch<PlantModel>(FetchSinglePlantUrl, {
+export function useFetchPlant(id: string) {
+    return useFetchCollection<PlantModel>(FetchSinglePlantUrl, {
         params: { id }
     });
 }
@@ -62,4 +62,8 @@ export function useDeletePlant(options: UseOptimisticDeleteOptions<UseDeletePlan
     // return useOptimisticDelete<UseDeletePlantVariables, InfiniteData<PageData<PlantSummaryModel[]>>>("/api/plants", cacheUpdaters, options);
     // TODO: fix typing with cache update
     return useOptimisticDelete<UseDeletePlantVariables, PlantSummaryModel[]>("/api/plants", cacheUpdaters, options);
+}
+
+export function prefetchPlant(queryClient: QueryClient, id: string) {
+    return prefetchSingle<PlantModel>(queryClient, FetchSinglePlantUrl, id);
 }
