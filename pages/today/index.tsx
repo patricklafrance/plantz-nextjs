@@ -1,61 +1,23 @@
-import { Box } from "@chakra-ui/react";
+import { TodayListView, TodayListViewProps } from "@features/plants/TodayListView";
 
-// const byLocation = useMemo(() => {
-//     const result = items?.reduce((acc, x: PlantModel) => {
-//         if (acc[x.location]) {
-//             acc[x.location].push(x);
-//         } else {
-//             acc[x.location] = [x];
-//         }
+import { GetServerSideProps } from "next";
+import { getDuePlants } from "@features/plants/server";
+import { toPlantSummaryModel } from "@features/plants";
 
-//         return acc;
-//     }, {} as Record<string, PlantModel[]>) ?? {};
-
-//     return Object.keys(result).sort().reduce((acc, x: string) => {
-//         acc[x] = result[x];
-
-//         return acc;
-//     }, {} as Record<string, PlantModel[]>);
-// }, [items]);
-
-// return (
-//     <>
-//         {Object.keys(byLocation).map(x => (
-//             <Stack spacing={6} key={x}>
-//                 <Box>
-//                     <Heading
-//                         as="h3"
-//                         size="lg"
-//                         textTransform="capitalize"
-//                         marginBottom={7}
-//                     >
-//                         {x}
-//                     </Heading>
-//                     <Stack>
-//                         {byLocation[x].map((y: PlantModel, index) => (
-//                             <Box
-//                                 _last={{
-//                                     marginBottom: 7
-//                                 }}
-//                                 key={index}
-//                             >
-//                                 <ListItem plant={y} />
-//                                 {index + 1 !== byLocation[x].length && (
-//                                     <Divider marginTop={2} />
-//                                 )}
-//                             </Box>
-//                         ))}
-//                     </Stack>
-//                 </Box>
-//             </Stack>
-//         ))}
-//     </>
-// );
-
-export default function TodayPage() {
+export default function TodayPage(props: TodayListViewProps) {
     return (
-        <Box>Today!</Box>
+        <TodayListView {...props} />
     );
 }
 
 TodayPage.pageTitle = "Today";
+
+export const getServerSideProps: GetServerSideProps = async () => {
+    const results = await getDuePlants();
+
+    return {
+        props: {
+            plants: results.map(x => toPlantSummaryModel(x))
+        }
+    };
+};

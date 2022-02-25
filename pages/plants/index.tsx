@@ -21,7 +21,7 @@ export const getServerSideProps: GetServerSideProps = async ({ query }) => {
         plants: {
             pageParams: [1],
             pages: [{
-                data: toPlantSummaryModel(results),
+                data: results.map(x => toPlantSummaryModel(x)),
                 nextPage: totalCount > SearchPlantsPageSize ? 2 : null,
                 previousPage: null,
                 totalCount

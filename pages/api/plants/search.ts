@@ -25,7 +25,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse<ApiGetRespons
 
     res.status(200).json({
         data: {
-            data: toPlantSummaryModel(results),
+            data: results.map(x => toPlantSummaryModel(x)),
             nextPage: totalCount > SearchPlantsPageSize * _page ? _page + 1 : null,
             previousPage: _page > 1 ? _page - 1 : null,
             totalCount

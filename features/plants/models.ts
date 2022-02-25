@@ -80,19 +80,19 @@ export interface PlantSummaryModel {
     wateringType: WateringType;
 }
 
-export function toPlantSummaryModel(documents: PlantDocument[]) {
-    return documents.map(x => ({
-        family: x.family,
-        id: toSerializableId(x._id),
-        location: x.location,
-        luminosity: x.luminosity,
-        mistLeaves: x.mistLeaves,
-        name: x.name,
-        nextWateringDate: toSerializableDate(x.nextWateringDate),
-        wateringFrequency: x.wateringFrequency,
-        wateringQuantity: x.wateringQuantity,
-        wateringType: x.wateringType
-    } as PlantSummaryModel));
+export function toPlantSummaryModel(document: PlantDocument) {
+    return {
+        family: document.family,
+        id: toSerializableId(document._id),
+        location: document.location,
+        luminosity: document.luminosity,
+        mistLeaves: document.mistLeaves,
+        name: document.name,
+        nextWateringDate: toSerializableDate(document.nextWateringDate),
+        wateringFrequency: document.wateringFrequency,
+        wateringQuantity: document.wateringQuantity,
+        wateringType: document.wateringType
+    } as PlantSummaryModel;
 }
 
 export interface AddPlantModel {

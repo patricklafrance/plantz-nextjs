@@ -1,6 +1,7 @@
 import { PlantDocument } from "./documents";
 import { PlantsCollectionName } from "@features/plants/server";
 import { queryMongoDb } from "@core/mongoDb/server";
+import { startOfToday } from "date-fns";
 
 export const SearchPlantsPageSize = 50;
 
@@ -33,12 +34,27 @@ export function searchPlants(page: number = 1, { query }: SearchPlantsOptions = 
             .limit(SearchPlantsPageSize)
             .skip((page - 1) * SearchPlantsPageSize)
             // eslint-disable-next-line sort-keys-fix/sort-keys-fix
-            .sort({ location: 1, name: 1, family: 1, lastUpdateDate: -1 })
+            .sort({ name: 1, family: 1, lastUpdateDate: -1 })
             .toArray();
 
         return {
             results: documents as PlantDocument[],
             totalCount: count
         } as SearchPlantsResult;
+    });
+}
+
+export function getDuePlants() {
+    return queryMongoDb(async database => {
+        const today = startOfToday();
+
+        return database
+            .collection<PlantDocument>(PlantsCollectionName)
+            .find({
+                nextWateringDate: { $lte: today }
+            })
+            // eslint-disable-next-line sort-keys-fix/sort-keys-fix
+            .sort({ location: 1, name: 1, family: 1, lastUpdateDate: -1 })
+            .toArray() as Promise<PlantDocument[]>;
     });
 }
