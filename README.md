@@ -11,7 +11,7 @@ https://plantz-nextjs-gov3xpho1-patricklafrance.vercel.app/
 -   NextJS isomorphic models & validation schemas
 -   react-query basic fetch & cache
 -   react-query parameterized fetch & cache entry
--   react-query complex fetch \* cache for infinite scrolling
+-   react-query infinite scrolling
 -   react-query prefetch
 -   react-query cache invalidation
 -   react-query optimistic updates
