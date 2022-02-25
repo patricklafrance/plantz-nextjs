@@ -4,4 +4,3 @@ export * from "./PlantListView";
 export * from "./TodayListView";
 
 export { SearchPlantsUrl } from "./http";
-export { PlantInfoViewModes } from "./PlantInfoModal";

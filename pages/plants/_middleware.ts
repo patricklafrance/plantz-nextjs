@@ -38,30 +38,5 @@ export function middleware(req: NextRequest, ev: NextFetchEvent) {
         return NextResponse.rewrite(url);
     }
 
-
-
-
-
-
-    // const { pathname, searchParams } = req.nextUrl;
-
-    // if (pathname.startsWith(`${PlantListUrl}/add`)) {
-    //     searchParams.append("action", "add");
-
-    //     return NextResponse.rewrite(toAbsoluteUrl(buildUrl(PlantListUrl, searchParams)));
-    // } else if (pathname.startsWith(`${PlantListUrl}/${PlantInfoViewModes.preview}`)) {
-    //     searchParams.append("action", "view");
-    //     searchParams.append("id", parseId(pathname));
-    //     searchParams.append("viewMode", PlantInfoViewModes.preview);
-
-    //     return NextResponse.rewrite(toAbsoluteUrl(buildUrl(PlantListUrl, searchParams)));
-    // } else if (pathname.startsWith(`${PlantListUrl}/${PlantInfoViewModes.edit}`)) {
-    //     searchParams.append("action", "view");
-    //     searchParams.append("id", parseId(pathname));
-    //     searchParams.append("viewMode", PlantInfoViewModes.edit);
-
-    //     return NextResponse.rewrite(toAbsoluteUrl(buildUrl(PlantListUrl, searchParams)));
-    // }
-
     return NextResponse.next();
 }
