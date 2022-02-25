@@ -19,13 +19,20 @@ global.mongoDb = global.mongoDb || {};
 export async function connect() {
     // @ts-ignore
     if (isNil(global.mongoDb.database)) {
-        const client = await MongoClient.connect(Uri as string);
-        const database = await client.db(DbName);
+        try {
+            const client = await MongoClient.connect(Uri as string);
+            const database = await client.db(DbName);
 
-        // @ts-ignore
-        global.mongoDb.client = client;
-        // @ts-ignore
-        global.mongoDb.database = database;
+            // @ts-ignore
+            global.mongoDb.client = client;
+            // @ts-ignore
+            global.mongoDb.database = database;
+        }
+        catch (error) {
+            console.log(`Cannot connect to Mongo DB: ${Uri} - ${DbName}`);
+
+            throw error;
+        }
     }
 
     return {
