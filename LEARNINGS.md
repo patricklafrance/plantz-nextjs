@@ -22,6 +22,8 @@
 
 -   When you use the router.replace, you're overwritting the top of the the stack. When using the router.push, it adds a new route to the top of the stack.
 
+-   NextJs api doesn't serialize Date by default. https://github.com/vercel/next.js/discussions/11498
+
 ### Formik
 
 -   https://formik.org/docs/tutorial#getfieldprops

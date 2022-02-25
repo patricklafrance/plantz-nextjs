@@ -8,6 +8,7 @@
 -   react-query basic fetch & cache
 -   react-query parameterized fetch & cache entry
 -   react-query complex fetch \* cache for infinite scrolling
+-   react-query prefetch
 -   react-query cache invalidation
 -   react-query optimistic updates
 -   react-query automatic retry on fetch & update error

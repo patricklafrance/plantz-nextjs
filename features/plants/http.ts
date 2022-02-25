@@ -59,8 +59,8 @@ export function useDeletePlant(options: UseOptimisticDeleteOptions<UseDeletePlan
         }, [])
     }];
 
-    // return useOptimisticDelete<UseDeletePlantVariables, InfiniteData<PageData<PlantSummaryModel[]>>>("/api/plants", cacheUpdaters, options);
     // TODO: fix typing with cache update
+    // @ts-ignore
     return useOptimisticDelete<UseDeletePlantVariables, PlantSummaryModel[]>("/api/plants", cacheUpdaters, options);
 }
 

@@ -11,11 +11,13 @@ import {
     Box,
     Button,
     ButtonGroup,
+    ButtonProps,
     Checkbox,
     Flex,
     FormControl,
     FormErrorMessage,
     FormLabel,
+    Grid,
     HStack,
     Heading,
     Icon,
@@ -30,17 +32,22 @@ import {
     Select,
     SimpleGrid,
     Stack,
-    Tag,
-    TagLabel,
-    TagLeftIcon,
     Text,
     Textarea,
     Tooltip,
     useBreakpointValue,
     useColorModeValue
 } from "@chakra-ui/react";
-import { DeleteIcon, EditIcon, LinkIcon, QuestionIcon, TimeIcon, ViewIcon } from "@chakra-ui/icons";
-import { EditPlantModel, LocationValuesAndLabels, LuminosityValuesAndLabels, PlantModel, WateringFrequencyValuesAndLabels, WateringTypeValuesAndLabels, editPlantValidationSchema } from "./models";
+import { CheckIcon, DeleteIcon, EditIcon, LinkIcon, QuestionIcon, TimeIcon, ViewIcon } from "@chakra-ui/icons";
+import {
+    EditPlantModel,
+    LocationValuesAndLabels,
+    LuminosityValuesAndLabels,
+    PlantModel,
+    WateringFrequencyValuesAndLabels,
+    WateringTypeValuesAndLabels,
+    editPlantValidationSchema
+} from "./models";
 import { RiCalendarLine, RiDropLine, RiLeafLine, RiShowersLine, RiSunLine } from "react-icons/ri";
 import { SyntheticEvent, useCallback, useRef, useState } from "react";
 import { getErrorMessage, isValid } from "@core/validation";
@@ -51,7 +58,9 @@ import { Formik } from "formik";
 import { PlantListUrl } from "@routes";
 import { buildUrl } from "@core/api/http";
 import { isNil } from "@core/utils";
+import { isWateringDue } from ".";
 import { preserveListQueryParameters } from "./preserveListQueryParameters";
+import { toFormattedWateringDate } from "./wateringDate";
 import { useRouter } from "next/router";
 
 export const PlantInfoViewModes = {
@@ -76,13 +85,13 @@ interface PlantInfoViewModeChangedData {
     viewMode: PlantInfoViewMode;
 }
 
-interface CardProps {
+interface CareCardProps {
     icon: any;
     title: string;
     value?: string
 }
 
-function Card({ icon, title, value }: CardProps) {
+function CareCard({ icon, title, value }: CareCardProps) {
     return (
         <HStack
             backgroundColor={useColorModeValue("gray.100", "whiteAlpha.300")}
@@ -96,7 +105,7 @@ function Card({ icon, title, value }: CardProps) {
                 alignItems="center"
                 justifyContent="center"
             >
-                <Icon as={icon} boxSize={8} gridArea="icon" />
+                <Icon as={icon} boxSize={8} />
             </Flex>
             <Flex
                 width={{ sm: "70%" }}
@@ -106,7 +115,6 @@ function Card({ icon, title, value }: CardProps) {
                 <Box>
                     <Text
                         as="span"
-                        gridArea="title"
                         fontWeight="500"
                         fontSize="sm"
                         textTransform="uppercase"
@@ -114,7 +122,7 @@ function Card({ icon, title, value }: CardProps) {
                         {title}
                     </Text>
                     <br />
-                    <Text as="span" gridArea="value">{value}</Text>
+                    <Text as="span">{value}</Text>
                 </Box>
             </Flex>
         </HStack>
@@ -154,7 +162,7 @@ function NotImplemented({ isOpen, onOk }: NotImplentedProps) {
     );
 }
 
-function CopyLinkButton() {
+function CopyLinkButton(props: ButtonProps) {
     const [isOpen, setIsOpen] = useState(false);
 
     const handleClick = useCallback(() => {
@@ -168,6 +176,7 @@ function CopyLinkButton() {
     return (
         <>
             <Button
+                {...props}
                 leftIcon={<LinkIcon />}
                 onClick={handleClick}
             >
@@ -178,11 +187,11 @@ function CopyLinkButton() {
     );
 }
 
-interface DeleteButtonProps {
+interface DeleteButtonProps extends ButtonProps {
     isDisabled?: boolean;
 }
 
-function DeleteButton({ isDisabled }: DeleteButtonProps) {
+function DeleteButton({ isDisabled, ...props }: DeleteButtonProps) {
     const [isOpen, setIsOpen] = useState(false);
 
     const handleClick = useCallback(() => {
@@ -196,6 +205,7 @@ function DeleteButton({ isDisabled }: DeleteButtonProps) {
     return (
         <>
             <Button
+                {...props}
                 leftIcon={<DeleteIcon />}
                 isDisabled={isDisabled}
                 onClick={handleClick}
@@ -211,8 +221,23 @@ interface PlantInfoProps {
     plant?: PlantModel;
 }
 
+const NextWateringColorSchemes = {
+    "is-due": {
+        backgroundColor: ["red.100", "red.200"],
+        button: ["whiteAlpha", "blackAlpha"],
+        color: "gray.800"
+    },
+    "is-not-due": {
+        backgroundColor: ["green.100", "green.100"],
+        button: ["whiteAlpha", "blackAlpha"],
+        color: "gray.800"
+    }
+} as const;
+
 function PlantInfo({ plant }: PlantInfoProps) {
     const emit = useEventEmitter();
+
+    const wateringDateColorScheme = NextWateringColorSchemes[isWateringDue(plant?.nextWateringDate) ? "is-due" : "is-not-due"];
 
     const handleEdit = useCallback(() => {
         emit(PlantInfoViewModeChangedEvent, { viewMode: PlantInfoViewModes.edit });
@@ -220,7 +245,7 @@ function PlantInfo({ plant }: PlantInfoProps) {
 
     return (
         <>
-            <ButtonGroup marginBottom={8} spacing={2}>
+            <ButtonGroup spacing={2} flexGrow={1}>
                 <Button
                     leftIcon={<EditIcon />}
                     onClick={handleEdit}
@@ -231,16 +256,55 @@ function PlantInfo({ plant }: PlantInfoProps) {
                 <CopyLinkButton />
                 <DeleteButton />
             </ButtonGroup>
-            <Box>
-                <Tag
-                    as="div"
-                    colorScheme="pink"
-                    size="lg"
-                >
-                    <TagLeftIcon as={TimeIcon} />
-                    <TagLabel>Due date</TagLabel>
-                </Tag>
-            </Box>
+            <Grid
+                gridTemplateColumns={{ base: "2fr 1fr", sm: "repeat(2, minmax(0, 1fr))" }}
+                backgroundColor={useColorModeValue(wateringDateColorScheme.backgroundColor[0], wateringDateColorScheme.backgroundColor[1])}
+                color={wateringDateColorScheme.color}
+                borderRadius="lg"
+                padding={4}
+                minHeight="80px"
+                width={{ base: "100%", sm: "75%" }}
+                marginTop={8}
+                alignItems="center"
+            >
+                <HStack width="100%" spacing={{ base: 5, sm: 2 }}>
+                    <Flex
+                        width={{ sm: "30%" }}
+                        alignItems="center"
+                        justifyContent="center"
+                    >
+                        <Icon as={TimeIcon} boxSize={8} />
+                    </Flex>
+                    <Flex
+                        width={{ sm: "70%" }}
+                        alignItems="center"
+                        justifyContent="start"
+                    >
+                        <Box>
+                            <Text
+                                as="span"
+                                fontWeight="500"
+                                fontSize="sm"
+                                textTransform="uppercase"
+                            >
+                                Next Watering
+                            </Text>
+                            <br />
+                            <Text as="span">{toFormattedWateringDate(plant?.nextWateringDate)}</Text>
+                        </Box>
+                    </Flex>
+                </HStack>
+                <Flex width="100%" justifyContent="center">
+                    <Button
+                        variant="solid"
+                        colorScheme={useColorModeValue(wateringDateColorScheme.button[0], wateringDateColorScheme.button[1])}
+                        color={wateringDateColorScheme.color}
+                        leftIcon={<CheckIcon />}
+                    >
+                        {useBreakpointValue({ base: "Done", sm: "Mark as done" })}
+                    </Button>
+                </Flex>
+            </Grid>
             {plant?.description && (
                 <>
                     <Heading as="h4" size="small" marginTop={8} marginBottom={2}>Description</Heading>
@@ -256,29 +320,33 @@ function PlantInfo({ plant }: PlantInfoProps) {
                 </>
             )}
             <Heading as="h4" size="small" marginTop={8} marginBottom={4}>Plant care</Heading>
-            <SimpleGrid columns={{ base: 1, sm: 2 }} spacing={4} width={{ base: "100%", sm: "75%" }}>
-                <Card
+            <SimpleGrid
+                columns={{ base: 1, sm: 2 }}
+                spacing={4}
+                width={{ base: "100%", sm: "75%" }}
+            >
+                <CareCard
                     icon={RiCalendarLine}
                     title="Frequency"
                     value={WateringFrequencyValuesAndLabels[plant?.wateringFrequency as keyof typeof WateringFrequencyValuesAndLabels]}
                 />
-                <Card
+                <CareCard
                     icon={RiSunLine}
                     title="Light"
                     value={LuminosityValuesAndLabels[plant?.luminosity as keyof typeof LuminosityValuesAndLabels]}
                 />
-                <Card
+                <CareCard
                     icon={RiDropLine}
                     title="Water"
                     value={plant?.wateringQuantity as string}
                 />
-                <Card
+                <CareCard
                     icon={RiShowersLine}
                     title="Watering type"
                     value={WateringTypeValuesAndLabels[plant?.wateringType as keyof typeof WateringTypeValuesAndLabels]}
                 />
                 {plant?.mistLeaves && (
-                    <Card
+                    <CareCard
                         icon={RiLeafLine}
                         title="Mist leaves"
                     />
@@ -297,7 +365,6 @@ function PlantInfoFooter({ onClose }: PlantInfoFooter) {
         <Button
             variant="solid"
             onClick={onClose}
-            colorScheme="teal"
         >
             Close
         </Button>
@@ -315,7 +382,7 @@ function EditPlant({
 }: EditPlantProps) {
     const emit = useEventEmitter();
 
-    const { data, error, isError, isLoading, mutateAsync: updatePlant } = useUpdatePlant();
+    const { error, isError, isLoading, mutateAsync: updatePlant } = useUpdatePlant();
 
     const switchToPreview = useCallback(() => {
         emit(PlantInfoViewModeChangedEvent, { viewMode: PlantInfoViewModes.preview });
@@ -356,7 +423,7 @@ function EditPlant({
                 initialValues={{
                     description: plant?.description ?? "",
                     family: plant?.family ?? "",
-                    id: plant?._id ?? "",
+                    id: plant?.id ?? "",
                     location: plant?.location ?? "",
                     luminosity: plant?.luminosity ?? "medium",
                     mistLeaves: plant?.mistLeaves ?? false,
@@ -507,7 +574,7 @@ function EditPlantFooter({
     }, [emit]);
 
     return (
-        <ButtonGroup spacing={6}>
+        <ButtonGroup spacing={2}>
             <Button
                 variant="outline"
                 onClick={handleCancel}

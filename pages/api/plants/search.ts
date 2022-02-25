@@ -2,10 +2,9 @@ import * as Yup from "yup";
 
 import { ApiGetResponse, PageData } from "@core/api";
 import { NextApiRequest, NextApiResponse } from "next";
+import { PlantSummaryModel, toPlantSummaryModel } from "@features/plants";
 import { SearchPlantsPageSize, searchPlants } from "@features/plants/server";
 import { apiHandler, withQueryValidation } from "@core/api/handlers/server";
-
-import { PlantSummaryModel } from "@features/plants";
 
 interface SearchPlantsQuery {
     page: string;
@@ -26,7 +25,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse<ApiGetRespons
 
     res.status(200).json({
         data: {
-            data: results,
+            data: toPlantSummaryModel(results),
             nextPage: totalCount > SearchPlantsPageSize * _page ? _page + 1 : null,
             previousPage: _page > 1 ? _page - 1 : null,
             totalCount

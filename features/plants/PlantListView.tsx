@@ -38,6 +38,7 @@ import { LocationValuesAndLabels, PlantSummaryModel, SearchPlantsModel, Watering
 import { NoResultsClearedEvent, PlantDeletedEvent, SearchQueryChangedData, SearchQueryChangedEvent } from "./events";
 import { PlantInfoModal, PlantInfoViewMode, PlantInfoViewModes } from "./PlantInfoModal";
 import { isNil, isNilOrEmpty } from "@core/utils";
+import { isWateringDue, toFormattedWateringDate } from "./wateringDate";
 import { prefetchPlant, useDeletePlant, useSearchPlants } from "./http";
 import { useEventEmitter, useEventSubcriber } from "@core/events";
 
@@ -241,6 +242,29 @@ function ViewLink({ children, plantId }: ViewLinkProps) {
     );
 }
 
+interface NameLinkProps {
+    name: string;
+    plantId: string;
+}
+
+function NameLink({ name, plantId }: NameLinkProps) {
+    const queryClient = useQueryClient();
+
+    const handleMouseEnter = useCallback(() => prefetchPlant(queryClient, plantId), [plantId, queryClient]);
+
+    return (
+        <ViewLink plantId={plantId}>
+            <Link
+                fontSize="lg"
+                fontWeight="500"
+                onMouseEnter={handleMouseEnter}
+            >
+                {name}
+            </Link>
+        </ViewLink>
+    );
+}
+
 interface ViewButtonProps {
     plantId: string;
 }
@@ -248,7 +272,6 @@ interface ViewButtonProps {
 function ViewButton({ plantId }: ViewButtonProps) {
     const queryClient = useQueryClient();
 
-    // TODO: what happens if fetch fail?
     const handleMouseEnter = useCallback(() => prefetchPlant(queryClient, plantId), [plantId, queryClient]);
 
     return (
@@ -382,9 +405,7 @@ function ListItem({ plant, style }: ListItemProps) {
                 flexGrow={1}
             >
                 <Box gridArea="name">
-                    <ViewLink plantId={plant.id}>
-                        <Link fontSize="lg" fontWeight="500">{plant.name}</Link>
-                    </ViewLink>
+                    <NameLink name={plant.name} plantId={plant.id} />
                     <Text color="gray.400">{plant.family}</Text>
                 </Box>
                 <Box gridArea="watering-qty">
@@ -396,20 +417,16 @@ function ListItem({ plant, style }: ListItemProps) {
                     <Text color="gray.400">watering</Text>
                 </Box>
                 <HStack gridArea="tags" spacing={4}>
-                    {/* {plant.mistLeaves && (
-                        <Tag colorScheme="green" size="lg">
-                            <TagLeftIcon as={RiLeafLine} />
-                            <TagLabel>Mist leaves</TagLabel>
-                        </Tag>
-                    )} */}
-                    <Tag colorScheme="cyan" size="lg">
+                    <Tag colorScheme="gray" size="lg">
                         <TagLeftIcon as={RiMapPinLine} />
                         <TagLabel>{LocationValuesAndLabels[plant.location as keyof typeof LocationValuesAndLabels]}</TagLabel>
                     </Tag>
-                    <Tag colorScheme="pink" size="lg">
-                        <TagLeftIcon as={TimeIcon} />
-                        <TagLabel>Due date</TagLabel>
-                    </Tag>
+                    {isWateringDue(plant.nextWateringDate) && (
+                        <Tag colorScheme="pink" size="lg">
+                            <TagLeftIcon as={TimeIcon} />
+                            <TagLabel>{toFormattedWateringDate(plant.nextWateringDate)}</TagLabel>
+                        </Tag>
+                    )}
                 </HStack>
             </Grid>
             <HStack spacing={{ base: 6, sm: 4 }}>

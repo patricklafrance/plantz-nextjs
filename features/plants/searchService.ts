@@ -1,6 +1,6 @@
-import { PlantsCollectionName, toSerializableId, withMongoDb } from "@core/mongoDb/server";
-
-import { PlantSummaryModel } from "./models";
+import { PlantDocument } from "./documents";
+import { PlantsCollectionName } from "@features/plants/server";
+import { queryMongoDb } from "@core/mongoDb/server";
 
 export const SearchPlantsPageSize = 50;
 
@@ -9,7 +9,7 @@ export interface SearchPlantsOptions {
 }
 
 export interface SearchPlantsResult {
-    results: PlantSummaryModel[];
+    results: PlantDocument[];
     totalCount: number;
 }
 
@@ -22,7 +22,7 @@ export function searchPlants(page: number = 1, { query }: SearchPlantsOptions = 
         }
         : {};
 
-    return withMongoDb<SearchPlantsResult>(async database => {
+    return queryMongoDb(async database => {
         const count = await database
             .collection(PlantsCollectionName)
             .countDocuments(params);
@@ -36,21 +36,9 @@ export function searchPlants(page: number = 1, { query }: SearchPlantsOptions = 
             .sort({ location: 1, name: 1, family: 1, lastUpdateDate: -1 })
             .toArray();
 
-        const plants =  documents.map(x => ({
-            family: x.family,
-            id: toSerializableId(x._id),
-            location: x.location,
-            luminosity: x.luminosity,
-            mistLeaves: x.mistLeaves,
-            name: x.name,
-            wateringFrequency: x.wateringFrequency,
-            wateringQuantity: x.wateringQuantity,
-            wateringType: x.wateringType
-        }));
-
         return {
-            results: plants as PlantSummaryModel[],
+            results: documents as PlantDocument[],
             totalCount: count
-        };
+        } as SearchPlantsResult;
     });
 }

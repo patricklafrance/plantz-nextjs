@@ -199,7 +199,7 @@ function _Modal({ onClose }: _ModalProps) {
                     </Formik>
                 </ModalBody>
                 <ModalFooter>
-                    <ButtonGroup spacing={6}>
+                    <ButtonGroup spacing={2}>
                         <Button
                             variant="outline"
                             onClick={close}

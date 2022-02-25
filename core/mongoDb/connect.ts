@@ -1,4 +1,4 @@
-import { Db, MongoClient } from "mongodb";
+import { Db, Document, MongoClient, WithId } from "mongodb";
 
 import { isNil } from "@core/utils";
 
@@ -16,7 +16,7 @@ const DbName = process.env.MONGODB_DB;
 // @ts-ignore
 global.mongoDb = global.mongoDb || {};
 
-export async function withMongoDb<T>(execute: (database: Db, client: MongoClient) => Promise<T>) {
+export async function connect() {
     // @ts-ignore
     if (isNil(global.mongoDb.database)) {
         const client = await MongoClient.connect(Uri as string);
@@ -28,8 +28,10 @@ export async function withMongoDb<T>(execute: (database: Db, client: MongoClient
         global.mongoDb.database = database;
     }
 
-    // @ts-ignore
-    const result = await execute(global.mongoDb.database, global.mongoDb.client);
-
-    return result;
+    return {
+        // @ts-ignore
+        client: global.mongoDb.client as MongoClient,
+        // @ts-ignore
+        database: global.mongoDb.database as Db
+    };
 }

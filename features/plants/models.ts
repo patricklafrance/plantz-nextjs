@@ -1,5 +1,9 @@
 import * as Yup from "yup";
 
+import { toSerializableDate, toSerializableId } from "@core/api";
+
+import { PlantDocument } from "./documents";
+
 // Temporary since locations should be dynamic.
 export const LocationValuesAndLabels = {
     "basement-back": "Basement (Back)",
@@ -41,20 +45,26 @@ export type WateringFrequency = keyof typeof WateringFrequencyValuesAndLabels;
 export type WateringType = keyof typeof WateringTypeValuesAndLabels;
 
 export interface PlantModel {
-    // TODO: rename _id for id
-    _id: string;
-    creationDate: number;
     description?: string;
     family?: string;
-    lastUpdateDate: number;
+    id: string;
     location: string;
     luminosity: Luminosity;
     mistLeaves?: boolean;
     name: string;
+    nextWateringDate: string;
     soilType?: string;
     wateringFrequency: WateringFrequency;
     wateringQuantity: string;
     wateringType: WateringType;
+}
+
+export function toPlantModel(document: PlantDocument) {
+    return {
+        ...document,
+        id: toSerializableId(document._id),
+        nextWateringDate: toSerializableDate(document.nextWateringDate)
+    } as PlantModel;
 }
 
 export interface PlantSummaryModel {
@@ -64,9 +74,25 @@ export interface PlantSummaryModel {
     luminosity: Luminosity;
     mistLeaves?: boolean;
     name: string;
+    nextWateringDate: string;
     wateringFrequency: WateringFrequency;
     wateringQuantity: string;
     wateringType: WateringType;
+}
+
+export function toPlantSummaryModel(documents: PlantDocument[]) {
+    return documents.map(x => ({
+        family: x.family,
+        id: toSerializableId(x._id),
+        location: x.location,
+        luminosity: x.luminosity,
+        mistLeaves: x.mistLeaves,
+        name: x.name,
+        nextWateringDate: toSerializableDate(x.nextWateringDate),
+        wateringFrequency: x.wateringFrequency,
+        wateringQuantity: x.wateringQuantity,
+        wateringType: x.wateringType
+    } as PlantSummaryModel));
 }
 
 export interface AddPlantModel {
