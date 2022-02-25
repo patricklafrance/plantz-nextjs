@@ -1,7 +1,7 @@
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 
-import { PlantInfoViewModes } from "@features/plants";
-import { PlantListUrl } from "@routes";
+// import { PlantInfoViewModes } from "@features/plants";
+// import { PlantListUrl } from "@routes";
 import { buildUrl } from "@core/api/http";
 
 function toAbsoluteUrl(relativeUrl: string) {
@@ -16,23 +16,43 @@ function parseId(pathname: string) {
 export function middleware(req: NextRequest, ev: NextFetchEvent) {
     const { pathname, searchParams } = req.nextUrl;
 
-    if (pathname.startsWith(`${PlantListUrl}/add`)) {
+    if (pathname.startsWith("/plants/add")) {
         searchParams.append("action", "add");
 
-        return NextResponse.rewrite(toAbsoluteUrl(buildUrl(PlantListUrl, searchParams)));
-    } else if (pathname.startsWith(`${PlantListUrl}/${PlantInfoViewModes.preview}`)) {
+        return NextResponse.rewrite(toAbsoluteUrl(buildUrl("/plants", searchParams)));
+    } else if (pathname.startsWith("/plants/preview")) {
         searchParams.append("action", "view");
         searchParams.append("id", parseId(pathname));
-        searchParams.append("viewMode", PlantInfoViewModes.preview);
+        searchParams.append("viewMode", "preview");
 
-        return NextResponse.rewrite(toAbsoluteUrl(buildUrl(PlantListUrl, searchParams)));
-    } else if (pathname.startsWith(`${PlantListUrl}/${PlantInfoViewModes.edit}`)) {
+        return NextResponse.rewrite(toAbsoluteUrl(buildUrl("/plants", searchParams)));
+    } else if (pathname.startsWith("/plants/edit")) {
         searchParams.append("action", "view");
         searchParams.append("id", parseId(pathname));
-        searchParams.append("viewMode", PlantInfoViewModes.edit);
+        searchParams.append("viewMode", "edit");
 
-        return NextResponse.rewrite(toAbsoluteUrl(buildUrl(PlantListUrl, searchParams)));
+        return NextResponse.rewrite(toAbsoluteUrl(buildUrl("/plants", searchParams)));
     }
+
+    // const { pathname, searchParams } = req.nextUrl;
+
+    // if (pathname.startsWith(`${PlantListUrl}/add`)) {
+    //     searchParams.append("action", "add");
+
+    //     return NextResponse.rewrite(toAbsoluteUrl(buildUrl(PlantListUrl, searchParams)));
+    // } else if (pathname.startsWith(`${PlantListUrl}/${PlantInfoViewModes.preview}`)) {
+    //     searchParams.append("action", "view");
+    //     searchParams.append("id", parseId(pathname));
+    //     searchParams.append("viewMode", PlantInfoViewModes.preview);
+
+    //     return NextResponse.rewrite(toAbsoluteUrl(buildUrl(PlantListUrl, searchParams)));
+    // } else if (pathname.startsWith(`${PlantListUrl}/${PlantInfoViewModes.edit}`)) {
+    //     searchParams.append("action", "view");
+    //     searchParams.append("id", parseId(pathname));
+    //     searchParams.append("viewMode", PlantInfoViewModes.edit);
+
+    //     return NextResponse.rewrite(toAbsoluteUrl(buildUrl(PlantListUrl, searchParams)));
+    // }
 
     return NextResponse.next();
 }
