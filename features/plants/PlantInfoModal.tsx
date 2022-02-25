@@ -52,7 +52,7 @@ import { RiCalendarLine, RiDropLine, RiLeafLine, RiShowersLine, RiSunLine } from
 import { SyntheticEvent, useCallback, useRef, useState } from "react";
 import { getErrorMessage, isValid } from "@core/validation";
 import { useEventEmitter, useEventSubcriber } from "@core/events";
-import { useFetchPlant, useUpdatePlant } from "./http";
+import { useFetchPlant, useResetWatering, useUpdatePlant } from "./http";
 
 import { Formik } from "formik";
 import { PlantListUrl } from "@routes";
@@ -217,11 +217,13 @@ function DeleteButton({ isDisabled, ...props }: DeleteButtonProps) {
     );
 }
 
-interface PlantInfoProps {
-    plant?: PlantModel;
+interface WateringColorScheme {
+    backgroundColor: string[],
+    button: string[],
+    color: string
 }
 
-const NextWateringColorSchemes = {
+const NextWateringColorSchemes: Record<string, WateringColorScheme> = {
     "is-due": {
         backgroundColor: ["red.100", "red.200"],
         button: ["whiteAlpha", "blackAlpha"],
@@ -232,7 +234,38 @@ const NextWateringColorSchemes = {
         button: ["whiteAlpha", "blackAlpha"],
         color: "gray.800"
     }
-} as const;
+};
+
+interface ResetWateringButtonProps {
+    colorScheme: WateringColorScheme;
+    plantId?: string;
+}
+
+function ResetWateringButton({ colorScheme, plantId }: ResetWateringButtonProps) {
+    // TODO: display toaster on error.
+    const { isLoading, mutate: resetWatering } = useResetWatering();
+
+    const handleClick = useCallback(() => {
+        resetWatering({ id: plantId as string });
+    }, [plantId, resetWatering]);
+
+    return (
+        <Button
+            onClick={handleClick}
+            variant="solid"
+            colorScheme={useColorModeValue(colorScheme.button[0], colorScheme.button[1])}
+            color={colorScheme.color}
+            leftIcon={<CheckIcon />}
+            isLoading={isLoading}
+        >
+            {useBreakpointValue({ base: "Done", sm: "Mark as done" })}
+        </Button>
+    );
+}
+
+interface PlantInfoProps {
+    plant?: PlantModel;
+}
 
 function PlantInfo({ plant }: PlantInfoProps) {
     const emit = useEventEmitter();
@@ -295,14 +328,10 @@ function PlantInfo({ plant }: PlantInfoProps) {
                     </Flex>
                 </HStack>
                 <Flex width="100%" justifyContent="center">
-                    <Button
-                        variant="solid"
-                        colorScheme={useColorModeValue(wateringDateColorScheme.button[0], wateringDateColorScheme.button[1])}
-                        color={wateringDateColorScheme.color}
-                        leftIcon={<CheckIcon />}
-                    >
-                        {useBreakpointValue({ base: "Done", sm: "Mark as done" })}
-                    </Button>
+                    <ResetWateringButton
+                        plantId={plant?.id}
+                        colorScheme={wateringDateColorScheme}
+                    />
                 </Flex>
             </Grid>
             {plant?.description && (

@@ -60,7 +60,7 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse<ApiCommandRes
                 ...document,
                 ...model,
                 lastUpdateDate: new Date()
-            }
+            } as PlantDocument
         );
     });
 

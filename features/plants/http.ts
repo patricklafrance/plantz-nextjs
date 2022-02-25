@@ -6,6 +6,7 @@ import { useCallback, useMemo } from "react";
 
 export const SearchPlantsUrl = "/api/plants/search";
 export const FetchSinglePlantUrl = "/api/plants";
+export const ResetWateringUrl = "/api/plants/resetWatering";
 
 export interface UseSearchPlantsOptions {
     initialData?: InfiniteData<PageData<PlantSummaryModel[]>>;
@@ -62,6 +63,20 @@ export function useDeletePlant(options: UseOptimisticDeleteOptions<UseDeletePlan
     // TODO: fix typing with cache update
     // @ts-ignore
     return useOptimisticDelete<UseDeletePlantVariables, PlantSummaryModel[]>("/api/plants", cacheUpdaters, options);
+}
+
+export interface UseResetWateringVariables {
+    id: string
+}
+
+export function useResetWatering() {
+    const getInvalidateKeys = useCallback((variables: UseResetWateringVariables) => {
+        return [SearchPlantsUrl, [FetchSinglePlantUrl, variables.id]];
+    }, []);
+
+    return usePost<UseResetWateringVariables>(ResetWateringUrl, {
+        invalidateKeys: getInvalidateKeys
+    });
 }
 
 export function prefetchPlant(queryClient: QueryClient, id: string) {
