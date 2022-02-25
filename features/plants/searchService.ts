@@ -3,7 +3,7 @@ import { PlantsCollectionName } from "@features/plants/server";
 import { queryMongoDb } from "@core/mongoDb/server";
 import { startOfToday } from "date-fns";
 
-export const SearchPlantsPageSize = 50;
+export const SearchPlantsPageSize = 20;
 
 export interface SearchPlantsOptions {
     query?: string;

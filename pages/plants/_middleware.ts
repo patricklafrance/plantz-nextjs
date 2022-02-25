@@ -1,38 +1,47 @@
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 
-// import { PlantInfoViewModes } from "@features/plants";
-// import { PlantListUrl } from "@routes";
-import { buildUrl } from "@core/api/http";
-
-function toAbsoluteUrl(relativeUrl: string) {
-    // TODO: Find out how to configure the hostname in nextjs config or to build an absolute url.
-    return `http://localhost:3000${relativeUrl}`;
-}
+import { PlantListUrl } from "@routes";
 
 function parseId(pathname: string) {
     return pathname.substring(pathname.lastIndexOf("/") + 1);
 }
 
 export function middleware(req: NextRequest, ev: NextFetchEvent) {
-    const { pathname, searchParams } = req.nextUrl;
+    const { pathname } = req.nextUrl;
 
-    if (pathname.startsWith("/plants/add")) {
-        searchParams.append("action", "add");
+    if (pathname.startsWith(`${PlantListUrl}/add`)) {
+        const url = req.nextUrl.clone();
 
-        return NextResponse.rewrite(toAbsoluteUrl(buildUrl("/plants", searchParams)));
-    } else if (pathname.startsWith("/plants/preview")) {
-        searchParams.append("action", "view");
-        searchParams.append("id", parseId(pathname));
-        searchParams.append("viewMode", "preview");
+        url.searchParams.append("action", "add");
+        url.pathname = PlantListUrl;
 
-        return NextResponse.rewrite(toAbsoluteUrl(buildUrl("/plants", searchParams)));
-    } else if (pathname.startsWith("/plants/edit")) {
-        searchParams.append("action", "view");
-        searchParams.append("id", parseId(pathname));
-        searchParams.append("viewMode", "edit");
+        return NextResponse.rewrite(url);
+    } else if (pathname.startsWith(`${PlantListUrl}/preview`)) {
+        const url = req.nextUrl.clone();
 
-        return NextResponse.rewrite(toAbsoluteUrl(buildUrl("/plants", searchParams)));
+        url.searchParams.append("action", "view");
+        url.searchParams.append("id", parseId(pathname));
+        url.searchParams.append("viewMode", "preview");
+
+        url.pathname = PlantListUrl;
+
+        return NextResponse.rewrite(url);
+    } else if (pathname.startsWith(`${PlantListUrl}/edit`)) {
+        const url = req.nextUrl.clone();
+
+        url.searchParams.append("action", "view");
+        url.searchParams.append("id", parseId(pathname));
+        url.searchParams.append("viewMode", "edit");
+
+        url.pathname = PlantListUrl;
+
+        return NextResponse.rewrite(url);
     }
+
+
+
+
+
 
     // const { pathname, searchParams } = req.nextUrl;
 
