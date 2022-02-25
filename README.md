@@ -1,6 +1,6 @@
 ## Live
 
-https://plantz-nextjs-gov3xpho1-patricklafrance.vercel.app/
+https://plantz-nextjs.vercel.app/
 
 ## Featuring
 
