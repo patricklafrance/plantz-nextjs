@@ -34,7 +34,7 @@ import { CSSProperties, ReactNode, SyntheticEvent, useCallback, useEffect, useMe
 import { CloseIcon, DeleteIcon, PlusSquareIcon, SearchIcon, TimeIcon, ViewIcon } from "@chakra-ui/icons";
 import { Error, NoResults } from "@components";
 import { InfiniteData, useQueryClient } from "react-query";
-import { LocationValuesAndLabels, PlantSummaryModel, SearchPlantsModel, WateringFrequencyValuesAndLabels, WateringTypeValuesAndLabels, searchPlantsValidationSchema } from "./models";
+import { LocationValuesAndLabels, PlantListModel, SearchPlantsModel, WateringTypeValuesAndLabels, searchPlantsValidationSchema } from "./models";
 import { NoResultsClearedEvent, PlantDeletedEvent, SearchQueryChangedData, SearchQueryChangedEvent } from "./events";
 import { PlantInfoModal, PlantInfoViewMode, PlantInfoViewModes } from "./PlantInfoModal";
 import { isNil, isNilOrEmpty } from "@core/utils";
@@ -48,6 +48,7 @@ import { PageData } from "@core/api";
 import { PageMarginBottom } from "@layouts";
 import { PlantListUrl } from "@routes";
 import { RiMapPinLine } from "react-icons/ri";
+import { getPrettyWaterFrequency } from "./getPrettyWaterFrequency";
 import { preserveListQueryParameters } from "./preserveListQueryParameters";
 import { transparentize } from "@chakra-ui/theme-tools";
 import { useFormik } from "formik";
@@ -55,21 +56,8 @@ import { useFormikState } from "@core/validation";
 import { useRouter } from "next/router";
 
 export interface PlantListViewProps {
-    plants: InfiniteData<PageData<PlantSummaryModel[]>>,
+    plants: InfiniteData<PageData<PlantListModel[]>>,
     query?: string;
-}
-
-function prettyWaterFrequency(wateringFrequency: string) {
-    /* eslint-disable indent */
-    switch (wateringFrequency) {
-        case "1-week":
-            return "week";
-        case "4-weeks":
-            return "month";
-        default:
-            return WateringFrequencyValuesAndLabels[wateringFrequency as keyof typeof WateringFrequencyValuesAndLabels];
-    }
-    /* eslint-enable indent */
 }
 
 function AddPlantTrigger(props: StyleProps) {
@@ -206,6 +194,8 @@ function ListHeader({ query = "" }: ListHeaderProps) {
             templateColumns={{ lg: "1fr max-content" }}
             gap={{ base: 6, lg: 12 }}
             marginBottom={10}
+            marginLeft={2}
+            marginRight={2}
         >
             <SearchPlantsInput query={query} gridArea="search" />
             <AddPlantTrigger gridArea="add-plant" />
@@ -380,7 +370,7 @@ function DeleteButton({ plantId, plantName }: DeleteButtonProps) {
 }
 
 interface ListItemProps extends StyleProps {
-    plant: PlantSummaryModel;
+    plant: PlantListModel;
     style?: CSSProperties;
 }
 
@@ -410,26 +400,26 @@ function ListItem({ plant, style }: ListItemProps) {
                 </Box>
                 <Box gridArea="watering-qty">
                     <Text fontSize="lg" fontWeight="500">{plant.wateringQuantity}</Text>
-                    <Text color="gray.400">every {prettyWaterFrequency(plant.wateringFrequency)}</Text>
+                    <Text color="gray.400">every {getPrettyWaterFrequency(plant.wateringFrequency)}</Text>
                 </Box>
                 <Box gridArea="watering-type">
                     <Text fontSize="lg" fontWeight="500">{WateringTypeValuesAndLabels[plant.wateringType as keyof typeof WateringTypeValuesAndLabels]}</Text>
                     <Text color="gray.400">watering</Text>
                 </Box>
-                <HStack gridArea="tags" spacing={4}>
+                <HStack gridArea="tags" flexWrap="wrap" gap={4}>
                     <Tag colorScheme="gray" size="lg">
                         <TagLeftIcon as={RiMapPinLine} />
                         <TagLabel>{LocationValuesAndLabels[plant.location as keyof typeof LocationValuesAndLabels]}</TagLabel>
                     </Tag>
                     {isWateringDue(plant.nextWateringDate) && (
-                        <Tag colorScheme="pink" size="lg">
+                        <Tag colorScheme="pink" size="lg" marginInlineStart="0 !important">
                             <TagLeftIcon as={TimeIcon} />
                             <TagLabel>{toFormattedWateringDate(plant.nextWateringDate)}</TagLabel>
                         </Tag>
                     )}
                 </HStack>
             </Grid>
-            <HStack spacing={{ base: 6, sm: 4 }}>
+            <HStack spacing={4}>
                 <ViewButton plantId={plant.id} />
                 <DeleteButton plantId={plant.id} plantName={plant.name} />
             </HStack>
@@ -525,10 +515,9 @@ function List({ plants, query }: PlantListViewProps) {
         // Must hardcode the marginBottom from PageLayout again otherwise it not's applied when the bottom of the list is reached.
         <Box marginBottom={PageMarginBottom}>
             <Text
-                as="span"
+                as="div"
                 fontSize="2xl"
                 fontWeight="500"
-                display="block"
                 marginLeft={2}
                 marginBottom={5}
             >

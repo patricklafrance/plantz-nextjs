@@ -60,7 +60,7 @@ async function createFakeData(database: Db, pageCount: number = 10) {
         const page: Document[] = [];
 
         for (let j = 0; j < 20; j += 1) {
-            const date = faker.date.recent(90);
+            const date = faker.date.recent(10);
             const frequency = faker.random.arrayElement(WateringFrequencies) as WateringFrequency;
 
             page.push({

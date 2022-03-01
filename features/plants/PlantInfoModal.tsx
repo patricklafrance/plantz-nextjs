@@ -71,6 +71,7 @@ export const PlantInfoViewModes = {
 export type PlantInfoViewMode = keyof typeof PlantInfoViewModes;
 
 export interface PlantInfoModalProps {
+    allowEdit?: boolean;
     initialViewMode?: PlantInfoViewMode;
     isOpen: boolean;
     onClose: () => void;
@@ -264,10 +265,11 @@ function ResetWateringButton({ colorScheme, plantId }: ResetWateringButtonProps)
 }
 
 interface PlantInfoProps {
+    allowEdit?: boolean;
     plant?: PlantModel;
 }
 
-function PlantInfo({ plant }: PlantInfoProps) {
+function PlantInfo({ allowEdit, plant }: PlantInfoProps) {
     const emit = useEventEmitter();
 
     const wateringDateColorScheme = NextWateringColorSchemes[isWateringDue(plant?.nextWateringDate) ? "is-due" : "is-not-due"];
@@ -279,15 +281,19 @@ function PlantInfo({ plant }: PlantInfoProps) {
     return (
         <>
             <ButtonGroup spacing={2} flexGrow={1}>
-                <Button
-                    leftIcon={<EditIcon />}
-                    onClick={handleEdit}
-                    autoFocus
-                >
-                    Edit
-                </Button>
+                {allowEdit && (
+                    <Button
+                        leftIcon={<EditIcon />}
+                        onClick={handleEdit}
+                        autoFocus
+                    >
+                        Edit
+                    </Button>
+                )}
                 <CopyLinkButton />
-                <DeleteButton />
+                {allowEdit && (
+                    <DeleteButton />
+                )}
             </ButtonGroup>
             <Grid
                 gridTemplateColumns={{ base: "2fr 1fr", sm: "repeat(2, minmax(0, 1fr))" }}
@@ -624,19 +630,21 @@ function EditPlantFooter({
 }
 
 interface _ModalProps {
+    allowEdit?: boolean;
     initialViewMode?: PlantInfoViewMode;
     onClose: () => void;
     plantId: string;
 }
 
 function _Modal({
+    allowEdit = true,
     initialViewMode = PlantInfoViewModes.preview,
     onClose,
     plantId
 }: _ModalProps) {
     const router = useRouter();
 
-    const [viewMode, setViewMode] = useState(initialViewMode);
+    const [viewMode, setViewMode] = useState(allowEdit ? initialViewMode : PlantInfoViewModes.preview);
 
     const [isSaving, setIsSaving] = useState(false);
 
@@ -708,6 +716,7 @@ function _Modal({
 }
 
 export function PlantInfoModal({
+    allowEdit,
     initialViewMode,
     isOpen,
     onClose,
@@ -722,6 +731,7 @@ export function PlantInfoModal({
             size={size}
         >
             <_Modal
+                allowEdit={allowEdit}
                 initialViewMode={initialViewMode}
                 onClose={onClose}
                 plantId={plantId}

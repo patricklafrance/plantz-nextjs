@@ -67,7 +67,33 @@ export function toPlantModel(document: PlantDocument) {
     } as PlantModel;
 }
 
-export interface PlantSummaryModel {
+export interface PlantListModel {
+    family?: string;
+    id: string;
+    location: string;
+    luminosity: Luminosity;
+    name: string;
+    nextWateringDate: string;
+    wateringFrequency: WateringFrequency;
+    wateringQuantity: string;
+    wateringType: WateringType;
+}
+
+export function toPlantListModel(document: PlantDocument) {
+    return {
+        family: document.family,
+        id: toSerializableId(document._id),
+        location: document.location,
+        luminosity: document.luminosity,
+        name: document.name,
+        nextWateringDate: toSerializableDate(document.nextWateringDate),
+        wateringFrequency: document.wateringFrequency,
+        wateringQuantity: document.wateringQuantity,
+        wateringType: document.wateringType
+    } as PlantListModel;
+}
+
+export interface DuePlantModel {
     family?: string;
     id: string;
     location: string;
@@ -80,7 +106,7 @@ export interface PlantSummaryModel {
     wateringType: WateringType;
 }
 
-export function toPlantSummaryModel(document: PlantDocument) {
+export function toDuePlantModel(document: PlantDocument) {
     return {
         family: document.family,
         id: toSerializableId(document._id),
@@ -92,7 +118,7 @@ export function toPlantSummaryModel(document: PlantDocument) {
         wateringFrequency: document.wateringFrequency,
         wateringQuantity: document.wateringQuantity,
         wateringType: document.wateringType
-    } as PlantSummaryModel;
+    } as DuePlantModel;
 }
 
 export interface AddPlantModel {

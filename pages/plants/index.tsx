@@ -1,5 +1,5 @@
-import { PlantListView, PlantListViewProps, toPlantSummaryModel } from "@features/plants";
-import { SearchPlantsPageSize, searchPlants } from "@features/plants/server";
+import { PageSize, searchPlants } from "@features/plants/server";
+import { PlantListView, PlantListViewProps, toPlantListModel } from "@features/plants";
 
 import { GetServerSideProps } from "next";
 import { isNil } from "@core/utils";
@@ -21,8 +21,8 @@ export const getServerSideProps: GetServerSideProps = async ({ query }) => {
         plants: {
             pageParams: [1],
             pages: [{
-                data: results.map(x => toPlantSummaryModel(x)),
-                nextPage: totalCount > SearchPlantsPageSize ? 2 : null,
+                data: results.map(x => toPlantListModel(x)),
+                nextPage: totalCount > PageSize ? 2 : null,
                 previousPage: null,
                 totalCount
             }]

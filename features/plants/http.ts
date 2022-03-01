@@ -1,4 +1,4 @@
-import { AddPlantModel, EditPlantModel, PlantModel, PlantSummaryModel } from "./models";
+import { AddPlantModel, EditPlantModel, PlantListModel, PlantModel } from "./models";
 import { IdentityData, PageData } from "@core/api";
 import { InfiniteData, QueryClient } from "react-query";
 import { UseOptimisticDeleteOptions, prefetchSingle, updateInfiniteFetchPages, useFetchCollection, useInfiniteFetch, useOptimisticDelete, usePost, usePut } from "@core/api/http";
@@ -9,12 +9,12 @@ export const FetchSinglePlantUrl = "/api/plants";
 export const ResetWateringUrl = "/api/plants/resetWatering";
 
 export interface UseSearchPlantsOptions {
-    initialData?: InfiniteData<PageData<PlantSummaryModel[]>>;
+    initialData?: InfiniteData<PageData<PlantListModel[]>>;
     query?: string;
 }
 
 export function useSearchPlants({ initialData, query }: UseSearchPlantsOptions = {}) {
-    return useInfiniteFetch<PlantSummaryModel[]>(SearchPlantsUrl, {
+    return useInfiniteFetch<PlantListModel[]>(SearchPlantsUrl, {
         initialData,
         params: { query: query ?? "" }
         // https://react-query.tanstack.com/guides/initial-query-data
@@ -53,7 +53,7 @@ export function useDeletePlant(options: UseOptimisticDeleteOptions<UseDeletePlan
     const cacheUpdaters = [{
         fetchKey: SearchPlantsUrl,
         updater: useCallback(({ id }, data) => {
-            return updateInfiniteFetchPages<PlantSummaryModel[]>(data, (pageData, totalCount) => ({
+            return updateInfiniteFetchPages<PlantListModel[]>(data, (pageData, totalCount) => ({
                 data: pageData.filter((y: any) => y.id !== id),
                 totalCount: totalCount - 1
             }));
@@ -62,7 +62,7 @@ export function useDeletePlant(options: UseOptimisticDeleteOptions<UseDeletePlan
 
     // TODO: fix typing with cache update
     // @ts-ignore
-    return useOptimisticDelete<UseDeletePlantVariables, PlantSummaryModel[]>("/api/plants", cacheUpdaters, options);
+    return useOptimisticDelete<UseDeletePlantVariables, PlantListModel[]>("/api/plants", cacheUpdaters, options);
 }
 
 export interface UseResetWateringVariables {

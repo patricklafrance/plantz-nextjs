@@ -21,6 +21,8 @@ export function PageHeader() {
             paddingX={PageMarginX}
             paddingY={2}
             marginBottom={7}
+            marginLeft={2}
+            marginRight={2}
             backgroundColor={useColorModeValue("gray.50", "gray.900")}
         >
             <HStack flexGrow={1} spacing={14}>

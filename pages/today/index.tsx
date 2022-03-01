@@ -1,12 +1,12 @@
-import { TodayListView, TodayListViewProps } from "@features/plants/TodayListView";
+import { TodayView, TodayViewProps } from "@features/plants/TodayView";
 
 import { GetServerSideProps } from "next";
 import { getDuePlants } from "@features/plants/server";
-import { toPlantSummaryModel } from "@features/plants";
+import { toDuePlantModel } from "@features/plants";
 
-export default function TodayPage(props: TodayListViewProps) {
+export default function TodayPage(props: TodayViewProps) {
     return (
-        <TodayListView {...props} />
+        <TodayView {...props} />
     );
 }
 
@@ -17,7 +17,7 @@ export const getServerSideProps: GetServerSideProps = async () => {
 
     return {
         props: {
-            plants: results.map(x => toPlantSummaryModel(x))
+            plants: results.map(x => toDuePlantModel(x))
         }
     };
 };
