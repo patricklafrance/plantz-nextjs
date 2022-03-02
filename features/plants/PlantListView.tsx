@@ -193,7 +193,7 @@ function ListHeader({ query = "" }: ListHeaderProps) {
             templateAreas={{ base: "\"add-plant\" \"search\"", lg: "\"search add-plant\"" }}
             templateColumns={{ lg: "1fr max-content" }}
             gap={{ base: 6, lg: 12 }}
-            marginBottom={10}
+            marginBottom={7}
             marginLeft={2}
             marginRight={2}
         >
@@ -246,7 +246,6 @@ function NameLink({ name, plantId }: NameLinkProps) {
         <ViewLink plantId={plantId}>
             <Link
                 fontSize="lg"
-                fontWeight="500"
                 onMouseEnter={handleMouseEnter}
             >
                 {name}
@@ -399,11 +398,11 @@ function ListItem({ plant, style }: ListItemProps) {
                     <Text color="gray.400">{plant.family}</Text>
                 </Box>
                 <Box gridArea="watering-qty">
-                    <Text fontSize="lg" fontWeight="500">{plant.wateringQuantity}</Text>
+                    <Text fontSize="lg">{plant.wateringQuantity}</Text>
                     <Text color="gray.400">every {getPrettyWaterFrequency(plant.wateringFrequency)}</Text>
                 </Box>
                 <Box gridArea="watering-type">
-                    <Text fontSize="lg" fontWeight="500">{WateringTypeValuesAndLabels[plant.wateringType as keyof typeof WateringTypeValuesAndLabels]}</Text>
+                    <Text fontSize="lg">{WateringTypeValuesAndLabels[plant.wateringType as keyof typeof WateringTypeValuesAndLabels]}</Text>
                     <Text color="gray.400">watering</Text>
                 </Box>
                 <HStack gridArea="tags" flexWrap="wrap" gap={4}>
@@ -516,8 +515,7 @@ function List({ plants, query }: PlantListViewProps) {
         <Box marginBottom={PageMarginBottom}>
             <Text
                 as="div"
-                fontSize="2xl"
-                fontWeight="500"
+                fontSize="lg"
                 marginLeft={2}
                 marginBottom={5}
             >

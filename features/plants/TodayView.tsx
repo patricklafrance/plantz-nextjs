@@ -1,12 +1,11 @@
 import { ApiErrorBoundary, ApiErrorBoundaryFallbackProps, buildUrl } from "@core/api/http";
-import { Box, Divider, Grid, HStack, Heading, IconButton, Link, Stack, StyleProps, Tag, TagLabel, TagLeftIcon, Text, useColorModeValue } from "@chakra-ui/react";
+import { Box, Divider, Grid, HStack, IconButton, Link, Stack, StyleProps, Tag, TagLabel, TagLeftIcon, Text, useColorModeValue } from "@chakra-ui/react";
 import { CSSProperties, ReactNode, useCallback, useMemo } from "react";
 import { CheckIcon, TimeIcon, ViewIcon } from "@chakra-ui/icons";
 import { DuePlantModel, LocationValuesAndLabels, WateringTypeValuesAndLabels } from "./models";
 import { PlantInfoModal, PlantInfoViewMode, PlantInfoViewModes } from "./PlantInfoModal";
 import { prefetchPlant, useDuePlants, useResetWatering } from "./http";
 
-import { AddPlantModal } from "./AddPlantModal";
 import { Error } from "@components";
 import { default as NextLink } from "next/link";
 import { RiLeafLine } from "react-icons/ri";
@@ -59,7 +58,6 @@ function NameLink({ name, plantId }: NameLinkProps) {
         <ViewLink plantId={plantId}>
             <Link
                 fontSize="lg"
-                fontWeight="500"
                 onMouseEnter={handleMouseEnter}
             >
                 {name}
@@ -147,11 +145,11 @@ function ListItem({ plant, style }: ListItemProps) {
                     <Text color="gray.400">{plant.family}</Text>
                 </Box>
                 <Box gridArea="watering-qty">
-                    <Text fontSize="lg" fontWeight="500">{plant.wateringQuantity}</Text>
+                    <Text fontSize="lg">{plant.wateringQuantity}</Text>
                     <Text color="gray.400">every {getPrettyWaterFrequency(plant.wateringFrequency)}</Text>
                 </Box>
                 <Box gridArea="watering-type">
-                    <Text fontSize="lg" fontWeight="500">{WateringTypeValuesAndLabels[plant.wateringType as keyof typeof WateringTypeValuesAndLabels]}</Text>
+                    <Text fontSize="lg">{WateringTypeValuesAndLabels[plant.wateringType as keyof typeof WateringTypeValuesAndLabels]}</Text>
                     <Text color="gray.400">watering</Text>
                 </Box>
                 <HStack gridArea="tags" flexWrap="wrap" gap={4}>
@@ -172,6 +170,33 @@ function ListItem({ plant, style }: ListItemProps) {
                 <ViewButton plantId={plant.id} />
             </HStack>
         </Stack>
+    );
+}
+
+interface LocationDividerProps {
+    label: string;
+}
+
+function LocationDivider({ label }: LocationDividerProps) {
+    return (
+        <HStack
+            width="100%"
+            marginTop={12}
+            marginBottom={4}
+            marginLeft={2}
+        >
+            <Box height="1px" backgroundColor={useColorModeValue("gray.700", "gray.100")} width={6} />
+            <Text
+                as="div"
+                color={useColorModeValue("gray.700", "gray.100")}
+                fontWeight={500}
+                fontSize="xl"
+                paddingLeft={1}
+                paddingRight={1}
+            >
+                {label}
+            </Text>
+        </HStack>
     );
 }
 
@@ -205,22 +230,10 @@ function List({ plants }: ListProps) {
             {Object.keys(byLocation).map(x => (
                 <Stack spacing={6} key={x}>
                     <Box>
-                        <Heading
-                            as="h3"
-                            size="md"
-                            marginBottom={4}
-                            marginLeft={2}
-                        >
-                            {LocationValuesAndLabels[x as keyof typeof LocationValuesAndLabels]}
-                        </Heading>
+                        <LocationDivider label={LocationValuesAndLabels[x as keyof typeof LocationValuesAndLabels]} />
                         <Stack>
                             {byLocation[x].map((y: DuePlantModel, index) => (
-                                <Box
-                                    _last={{
-                                        marginBottom: 10
-                                    }}
-                                    key={index}
-                                >
+                                <Box key={index}>
                                     <ListItem plant={y} />
                                     {index + 1 !== byLocation[x].length && (
                                         <Divider marginTop={2} />
@@ -244,15 +257,21 @@ export function TodayView({ plants }: TodayViewProps) {
 
     return (
         <>
-            <Text
-                as="div"
-                fontSize="2xl"
-                fontWeight="500"
-                marginLeft={2}
-                marginBottom={8}
-            >
-                These plants needs water today!
-            </Text>
+            <Box marginLeft={2}>
+                <Text
+                    as="div"
+                    fontSize="2xl"
+                >
+                    These plants needs water today!
+                </Text>
+                <Text
+                    as="div"
+                    fontSize="xl"
+                    color="gray.400"
+                >
+                    Water them before they dry out.
+                </Text>
+            </Box>
             <ApiErrorBoundary fallbackRender={({ error, resetErrorBoundary }: ApiErrorBoundaryFallbackProps) => (
                 <Error
                     message="We currently cannot load plants, please try again in a few seconds."
