@@ -2,16 +2,16 @@
 
 module.exports = {
     eslint: {
-        ignoreDuringBuilds: true
+        ignoreDuringBuilds: true,
     },
 
     async redirects() {
         return [
             {
-                destination: "/plants",
+                destination: "/today",
                 permanent: true,
                 source: "/",
             },
         ];
-    }
+    },
 };

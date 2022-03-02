@@ -1,12 +1,24 @@
-import { AddPlantModel, EditPlantModel, PlantListModel, PlantModel } from "./models";
+import { AddPlantModel, DuePlantModel, EditPlantModel, PlantListModel, PlantModel } from "./models";
 import { IdentityData, PageData } from "@core/api";
 import { InfiniteData, QueryClient } from "react-query";
-import { UseOptimisticDeleteOptions, prefetchSingle, updateInfiniteFetchPages, useFetchCollection, useInfiniteFetch, useOptimisticDelete, usePost, usePut } from "@core/api/http";
+import { UseOptimisticDeleteOptions, prefetchSingle, updateInfiniteFetchPages, useFetchCollection, useFetchSingle, useInfiniteFetch, useOptimisticDelete, usePost, usePut } from "@core/api/http";
 import { useCallback, useMemo } from "react";
 
-export const SearchPlantsUrl = "/api/plants/search";
-export const FetchSinglePlantUrl = "/api/plants";
-export const ResetWateringUrl = "/api/plants/resetWatering";
+export const TodayUrl = "/api/today";
+export const PlantsUrl = "/api/plants";
+export const FetchSinglePlantUrl = PlantsUrl;
+export const SearchPlantsUrl = `${PlantsUrl}/search`;
+export const ResetWateringUrl = `${PlantsUrl}/resetWatering`;
+
+export interface UseDuePlantsOptions {
+    initialData?: DuePlantModel[];
+}
+
+export function useDuePlants({ initialData }: UseDuePlantsOptions = {}) {
+    return useFetchCollection(TodayUrl, {
+        initialData
+    });
+}
 
 export interface UseSearchPlantsOptions {
     initialData?: InfiniteData<PageData<PlantListModel[]>>;
@@ -24,9 +36,7 @@ export function useSearchPlants({ initialData, query }: UseSearchPlantsOptions =
 }
 
 export function useFetchPlant(id: string) {
-    return useFetchCollection<PlantModel>(FetchSinglePlantUrl, {
-        params: { id }
-    });
+    return useFetchSingle<PlantModel>(FetchSinglePlantUrl, id);
 }
 
 export function useAddPlant() {
@@ -71,7 +81,7 @@ export interface UseResetWateringVariables {
 
 export function useResetWatering() {
     const getInvalidateKeys = useCallback((variables: UseResetWateringVariables) => {
-        return [SearchPlantsUrl, [FetchSinglePlantUrl, variables.id]];
+        return [TodayUrl, SearchPlantsUrl, [FetchSinglePlantUrl, variables.id]];
     }, []);
 
     return usePost<UseResetWateringVariables>(ResetWateringUrl, {

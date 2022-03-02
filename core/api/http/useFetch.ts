@@ -1,12 +1,11 @@
 import { QueryFunctionContext, UseQueryOptions, UseQueryResult, useQuery } from "react-query";
-import { useUrl } from "./useUrl";
-import { useCallback } from "react";
 
 import { ApiError } from "./apiError";
-
 import { Nullable } from "@core/types";
 import { fetcher } from "./fetcher";
+import { useCallback } from "react";
 import { useFetchKey } from "./useFetchKey";
+import { useUrl } from "./useUrl";
 
 export interface UseFetchOptions<TModel> extends Omit<UseQueryOptions<TModel, ApiError, TModel>, "queryFn" | "queryKey" | "useErrorBoundary"> {
     params?: Record<string, any>;
@@ -31,7 +30,7 @@ export function useFetch<TModel>(url: string, { params, ...options }: UseFetchOp
     return useQuery(_options);
 }
 
-export function useFetchCollection<TModel>(url: string, options: UseFetchOptions<TModel>) {
+export function useFetchCollection<TModel>(url: string, options?: UseFetchOptions<TModel>) {
     return useFetch<TModel>(url, options);
 }
 

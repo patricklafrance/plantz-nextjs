@@ -50,6 +50,7 @@ import {
 } from "./models";
 import { RiCalendarLine, RiDropLine, RiLeafLine, RiShowersLine, RiSunLine } from "react-icons/ri";
 import { SyntheticEvent, useCallback, useRef, useState } from "react";
+import { canResetWatering, isWateringDue, toFormattedWateringDate } from "./wateringDate";
 import { getErrorMessage, isValid } from "@core/validation";
 import { useEventEmitter, useEventSubcriber } from "@core/events";
 import { useFetchPlant, useResetWatering, useUpdatePlant } from "./http";
@@ -58,9 +59,7 @@ import { Formik } from "formik";
 import { PlantListUrl } from "@routes";
 import { buildUrl } from "@core/api/http";
 import { isNil } from "@core/utils";
-import { isWateringDue } from ".";
 import { preserveListQueryParameters } from "./preserveListQueryParameters";
-import { toFormattedWateringDate } from "./wateringDate";
 import { useRouter } from "next/router";
 
 export const PlantInfoViewModes = {
@@ -333,12 +332,14 @@ function PlantInfo({ allowEdit, plant }: PlantInfoProps) {
                         </Box>
                     </Flex>
                 </HStack>
-                <Flex width="100%" justifyContent="center">
-                    <ResetWateringButton
-                        plantId={plant?.id}
-                        colorScheme={wateringDateColorScheme}
-                    />
-                </Flex>
+                {allowEdit && canResetWatering(plant?.nextWateringDate, plant?.wateringFrequency) && (
+                    <Flex width="100%" justifyContent="center">
+                        <ResetWateringButton
+                            plantId={plant?.id}
+                            colorScheme={wateringDateColorScheme}
+                        />
+                    </Flex>
+                )}
             </Grid>
             {plant?.description && (
                 <>
@@ -693,7 +694,10 @@ function _Modal({
                             />
                         )
                         : (
-                            <PlantInfo plant={plant as PlantModel}/>
+                            <PlantInfo
+                                allowEdit={allowEdit}
+                                plant={plant as PlantModel}
+                            />
                         )
                     }
                 </ModalBody>

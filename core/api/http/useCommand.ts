@@ -73,15 +73,15 @@ function useCommand<TVariables, TData = unknown>(url: string, method: Omit<HttpM
     return useMutation(_options) as UseCommandResult<TVariables, TData>;
 }
 
-export function usePost<TVariables, TData = unknown>(url: string, options: UseCommandOptions<TVariables, TData>) {
+export function usePost<TVariables, TData = unknown>(url: string, options?: UseCommandOptions<TVariables, TData>) {
     return useCommand<TVariables, TData>(url, "POST", options);
 }
 
-export function usePut<TVariables, TData = unknown>(url: string, options: UseCommandOptions<TVariables, TData>) {
+export function usePut<TVariables, TData = unknown>(url: string, options?: UseCommandOptions<TVariables, TData>) {
     return useCommand<TVariables, TData>(url, "PUT", options);
 }
 
-export function useDelete<TVariables, TData = unknown>(url: string, options: UseCommandOptions<TVariables, TData>) {
+export function useDelete<TVariables, TData = unknown>(url: string, options?: UseCommandOptions<TVariables, TData>) {
     return useCommand<TVariables, TData>(url, "DELETE", options);
 }
 

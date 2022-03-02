@@ -1,9 +1,10 @@
 import { ApiErrorBoundary, ApiErrorBoundaryFallbackProps, buildUrl } from "@core/api/http";
 import { Box, Divider, Grid, HStack, Heading, IconButton, Link, Stack, StyleProps, Tag, TagLabel, TagLeftIcon, Text, useColorModeValue } from "@chakra-ui/react";
 import { CSSProperties, ReactNode, useCallback, useMemo } from "react";
+import { CheckIcon, TimeIcon, ViewIcon } from "@chakra-ui/icons";
 import { DuePlantModel, LocationValuesAndLabels, WateringTypeValuesAndLabels } from "./models";
 import { PlantInfoModal, PlantInfoViewMode, PlantInfoViewModes } from "./PlantInfoModal";
-import { TimeIcon, ViewIcon } from "@chakra-ui/icons";
+import { prefetchPlant, useDuePlants, useResetWatering } from "./http";
 
 import { AddPlantModal } from "./AddPlantModal";
 import { Error } from "@components";
@@ -11,7 +12,6 @@ import { default as NextLink } from "next/link";
 import { RiLeafLine } from "react-icons/ri";
 import { TodayUrl } from "@routes";
 import { getPrettyWaterFrequency } from "./getPrettyWaterFrequency";
-import { prefetchPlant } from "./http";
 import { toFormattedWateringDate } from "./wateringDate";
 import { transparentize } from "@chakra-ui/theme-tools";
 import { useQueryClient } from "react-query";
@@ -92,6 +92,31 @@ function ViewButton({ plantId }: ViewButtonProps) {
     );
 }
 
+interface ResetWateringButtonProps {
+    plantId: string;
+}
+
+function ResetWateringButton({ plantId }: ResetWateringButtonProps) {
+    // Display toaster on error.
+    const { isLoading, mutate: resetWatering } = useResetWatering();
+
+    const handleClick = useCallback(() => {
+        resetWatering({ id: plantId });
+    }, [plantId, resetWatering]);
+
+    return (
+        <IconButton
+            icon={<CheckIcon />}
+            aria-label="Mark as done"
+            size="lg"
+            isRound
+            title="Mark as done"
+            onClick={handleClick}
+            isLoading={isLoading}
+        />
+    );
+}
+
 interface ListItemProps extends StyleProps {
     plant: DuePlantModel;
     style?: CSSProperties;
@@ -143,6 +168,7 @@ function ListItem({ plant, style }: ListItemProps) {
                 </HStack>
             </Grid>
             <HStack spacing={4}>
+                <ResetWateringButton plantId={plant.id} />
                 <ViewButton plantId={plant.id} />
             </HStack>
         </Stack>
@@ -154,8 +180,10 @@ interface ListProps {
 }
 
 function List({ plants }: ListProps) {
+    const { data } = useDuePlants({ initialData: plants });
+
     const byLocation = useMemo(() => {
-        const result = plants?.reduce((acc, x: DuePlantModel) => {
+        const result = data?.reduce((acc, x: DuePlantModel) => {
             if (acc[x.location]) {
                 acc[x.location].push(x);
             } else {
@@ -170,7 +198,7 @@ function List({ plants }: ListProps) {
 
             return acc;
         }, {} as Record<string, DuePlantModel[]>);
-    }, [plants]);
+    }, [data]);
 
     return (
         <>

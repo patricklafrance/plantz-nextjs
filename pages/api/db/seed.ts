@@ -8,7 +8,6 @@ import { executeMongoDb } from "@core/mongoDb/server";
 import { faker } from "@faker-js/faker";
 import fs from "fs";
 import parse from "csv-parse";
-import { removeTimeFromDate } from "@core/utils";
 
 const Families = ["Umbelliferae", "Lamiaceae", "Solanaceae", "Asteraceae", "Brassicaceae", "Liliaceae", "Rosaceae", "Cucurbitaceae"];
 
@@ -71,7 +70,7 @@ async function createFakeData(database: Db, pageCount: number = 10) {
                 luminosity: faker.random.arrayElement(Luminosities),
                 mistLeaves: faker.datatype.boolean(),
                 name: faker.random.arrayElement(names),
-                nextWateringDate: getNextWateringDate(removeTimeFromDate(date), frequency),
+                nextWateringDate: getNextWateringDate(date, frequency),
                 soilType: faker.random.arrayElement(SoilTypes),
                 wateringFrequency: frequency,
                 wateringQuantity: `${faker.datatype.number({ max: 350, min: 100 })}ml`,

@@ -4,10 +4,10 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { PlantDocument, PlantsCollectionName } from "@features/plants/server";
 import { apiHandler, withBodyValidation } from "@core/api/handlers/server";
 import { executeMongoDb, queryMongoDb } from "@core/mongoDb/server";
-import { isNil, removeTimeFromDate } from "@core/utils";
 
 import { Nullable } from "@core/types";
 import { ObjectId } from "mongodb";
+import { isNil } from "@core/utils";
 
 async function handleGetSingle(req: NextApiRequest, res: NextApiResponse<ApiGetResponse<Nullable<PlantModel>>>) {
     const { id } = req.query;
@@ -34,8 +34,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse<ApiCommandRe
         return database.collection(PlantsCollectionName).insertOne({
             ...model,
             creationDate: date,
-            lastUpdateDate: date,
-            nextWateringDate: getNextWateringDate(removeTimeFromDate(date), model.wateringFrequency)
+            lastUpdateDate: date
         });
     });
 
