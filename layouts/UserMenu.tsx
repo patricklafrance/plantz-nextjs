@@ -50,7 +50,7 @@ export function UserMenu() {
                 </MenuItem>
                 <MenuDivider />
                 <MenuItem onClick={handleLogout}>
-                    Sign Out
+                    Sign out
                 </MenuItem>
             </MenuList>
         </Menu>

@@ -2,7 +2,7 @@ import "./_app.css";
 
 import { ApiClientFailureReasons, isApiError } from "@core/api/http";
 import { ErrorBoundary, FallbackProps } from "react-error-boundary";
-import { NextRouter, withRouter } from "next/router";
+import { NextRouter, Router, withRouter } from "next/router";
 import { QueryClient, QueryClientProvider, useQueryErrorResetBoundary } from "react-query";
 
 import { AppProps } from "next/app";
@@ -14,6 +14,12 @@ import { NextPage } from "next";
 import { PageLayout } from "@layouts";
 import { ReactQueryDevtools } from "react-query/devtools";
 import { SessionProvider } from "next-auth/react";
+import { default as nProgress } from "nprogress";
+
+// nProgress setup, read https://www.akmittal.dev/posts/nextjs-navigation-progress-bar.
+Router.events.on("routeChangeStart", nProgress.start);
+Router.events.on("routeChangeError", nProgress.done);
+Router.events.on("routeChangeComplete", nProgress.done);
 
 export type Page = NextPage & {
     pageTitle?: string;
