@@ -1,5 +1,6 @@
 import { Flex, HStack, Link, useColorModeValue } from "@chakra-ui/react";
 
+import { ColorModeToggler } from "./ColorModeToggler";
 import { Logo } from "./Logo";
 import { default as NextLink } from "next/link";
 import { PageMarginX } from "./constants";
@@ -76,7 +77,7 @@ export function DesktopNav({ links }: DesktopNavProps) {
                     </HStack>
                 )}
             </HStack>
-            {isAuthenticated && <UserMenu />}
+            {isAuthenticated ? <UserMenu /> : <ColorModeToggler />}
         </Flex>
     );
 }

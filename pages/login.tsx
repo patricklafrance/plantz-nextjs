@@ -101,16 +101,20 @@ export default function LoginPage() {
     }, []);
 
     return (
-        <Center
+        <Flex
             width="100%"
             height="100%"
+            justifyContent="center"
         >
             <Flex
                 direction={{ base: "column", sm: "row" }}
                 alignItems={{ base: "center", sm: "initial" }}
                 gap={{ base: 6, sm: "140px" }}
+                height="max-content"
+                position="relative"
+                top="30%"
             >
-                <Stack>
+                <Stack alignItems={{ base: "center", sm: "initial" }}>
                     <Heading
                         as="h1"
                         size="2xl"
@@ -131,7 +135,7 @@ export default function LoginPage() {
                     <GoogleButton onClick={handleLogin} />
                 </Center>
             </Flex>
-        </Center>
+        </Flex>
     );
 }
 

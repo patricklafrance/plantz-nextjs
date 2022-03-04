@@ -10,6 +10,7 @@ import {
 } from "@chakra-ui/react";
 import { CloseIcon, HamburgerIcon } from "@chakra-ui/icons";
 
+import { ColorModeToggler } from "./ColorModeToggler";
 import { Logo } from "./Logo";
 import { default as NextLink } from "next/link";
 import { PageMarginX } from "./constants";
@@ -80,7 +81,7 @@ export function MobileNav({ links }: MobileNavProps) {
                 <HStack flexGrow={1} justifyContent={isAuthenticated ? "center" : "initial"}>
                     <Logo />
                 </HStack>
-                {isAuthenticated && <UserMenu />}
+                {isAuthenticated ? <UserMenu /> : <ColorModeToggler />}
             </Flex>
 
             {isAuthenticated && isOpen ? (

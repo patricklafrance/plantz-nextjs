@@ -19,6 +19,7 @@ https://plantz-nextjs.vercel.app/
 -   react-query in-form error handling
 -   react-query & error boundary + reset support
 -   react-query automatic refresh on window focus
+-   Authentication with next-auth
 -   MongoDb client for Nodejs
 
 ## Installation
