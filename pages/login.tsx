@@ -143,11 +143,9 @@ export const getServerSideProps: GetServerSideProps = async ({ query, req }) => 
     if (!isNil(session)) {
         const callbackUrl = query.callbackUrl as string;
 
-        const callbackRoute = !isNilOrEmpty(callbackUrl) ? extractRoute(callbackUrl, process.env.NEXTAUTH_URL as string) : undefined;
-
         return {
             redirect: {
-                destination: !isNil(callbackRoute) && isExistingRoute(callbackRoute) ? callbackRoute : TodayRoute,
+                destination: !isNil(callbackUrl) ? callbackUrl : TodayRoute,
                 permanent: false
             }
         };
