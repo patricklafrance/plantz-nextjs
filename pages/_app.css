@@ -5,3 +5,10 @@ body,
 #__next {
     height: 100%;
 }
+
+.chakra-menu__icon-wrapper {
+    display: flex;
+    align-items: center;
+    margin-top: 2px;
+    font-size: inherit !important;
+}

@@ -9,9 +9,11 @@ import { AppProps } from "next/app";
 import { ChakraProvider } from "@chakra-ui/react";
 import { Component } from "react";
 import { Error } from "@components";
+import { LoginRoute } from "@routes";
 import { NextPage } from "next";
 import { PageLayout } from "@layouts";
 import { ReactQueryDevtools } from "react-query/devtools";
+import { SessionProvider } from "next-auth/react";
 
 export type Page = NextPage & {
     pageTitle?: string;
@@ -32,7 +34,7 @@ class _UnauthorizedErrorBoundary extends Component<{ router: NextRouter }> {
     componentDidCatch(error: Error) {
         if (isApiError(error)) {
             if (error.reason === ApiClientFailureReasons.unauthorized) {
-                this.props.router.push("/login");
+                this.props.router.push(LoginRoute);
             }
         }
     }
@@ -69,22 +71,31 @@ function UnmanagedErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
 
 const queryClient = new QueryClient();
 
-function App({ Component, pageProps }: AppPropsWithPageTitle) {
+function App({
+    Component,
+    pageProps: { session, ...pageProps } = {}
+}: AppPropsWithPageTitle) {
     const { reset } = useQueryErrorResetBoundary();
 
     return (
         <QueryClientProvider client={queryClient}>
             <ChakraProvider>
-                <PageLayout pageTitle={Component.pageTitle}>
-                    <UnauthorizedErrorBoundary>
-                        <ErrorBoundary
-                            fallbackRender={props => <UnmanagedErrorFallback {...props} />}
-                            onReset={reset}
-                        >
-                            <Component {...pageProps} />
-                        </ErrorBoundary>
-                    </UnauthorizedErrorBoundary>
-                </PageLayout>
+                <SessionProvider
+                    session={session}
+                    refetchInterval={0}
+                    refetchOnWindowFocus={false}
+                >
+                    <PageLayout pageTitle={Component.pageTitle}>
+                        <UnauthorizedErrorBoundary>
+                            <ErrorBoundary
+                                fallbackRender={props => <UnmanagedErrorFallback {...props} />}
+                                onReset={reset}
+                            >
+                                <Component {...pageProps} />
+                            </ErrorBoundary>
+                        </UnauthorizedErrorBoundary>
+                    </PageLayout>
+                </SessionProvider>
             </ChakraProvider>
             <ReactQueryDevtools />
         </QueryClientProvider>

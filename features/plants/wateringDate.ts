@@ -76,9 +76,8 @@ function getFrequencyCalculator(wateringFrequency: WateringFrequency) {
 
 export function getNextWateringDate(currentDate: Date, wateringFrequency: WateringFrequency) {
     const calculator = getFrequencyCalculator(wateringFrequency);
-    const newDate = calculator(currentDate);
 
-    console.log(newDate, removeTimeFromDate(newDate), currentDate);
+    const newDate = calculator(currentDate);
 
     return removeTimeFromDate(newDate);
 }

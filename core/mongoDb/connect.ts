@@ -1,4 +1,4 @@
-import { Db, Document, MongoClient, WithId } from "mongodb";
+import { Db, MongoClient } from "mongodb";
 
 import { isNil } from "@core/utils";
 

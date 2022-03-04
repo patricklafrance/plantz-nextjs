@@ -3,13 +3,14 @@ import { Box, Divider, Grid, HStack, IconButton, Link, Stack, StyleProps, Tag, T
 import { CSSProperties, ReactNode, useCallback, useMemo } from "react";
 import { CheckIcon, TimeIcon, ViewIcon } from "@chakra-ui/icons";
 import { DuePlantModel, LocationValuesAndLabels, WateringTypeValuesAndLabels } from "./models";
+import { Error, ShortDivider } from "@components";
 import { PlantInfoModal, PlantInfoViewMode, PlantInfoViewModes } from "./PlantInfoModal";
 import { prefetchPlant, useDuePlants, useResetWatering } from "./http";
 
-import { Error } from "@components";
 import { default as NextLink } from "next/link";
+import { PageMarginBottom } from "@layouts";
 import { RiLeafLine } from "react-icons/ri";
-import { TodayUrl } from "@routes";
+import { TodayRoute } from "@routes";
 import { getPrettyWaterFrequency } from "./getPrettyWaterFrequency";
 import { toFormattedWateringDate } from "./wateringDate";
 import { transparentize } from "@chakra-ui/theme-tools";
@@ -26,7 +27,7 @@ interface ViewLinkProps {
 }
 
 function ViewLink({ children, plantId }: ViewLinkProps) {
-    const href = buildUrl(TodayUrl, {
+    const href = buildUrl(TodayRoute, {
         action: "view",
         id: plantId,
         viewMode: PlantInfoViewModes.preview
@@ -35,7 +36,7 @@ function ViewLink({ children, plantId }: ViewLinkProps) {
     return (
         <NextLink
             href={href}
-            as={`${TodayUrl}/${PlantInfoViewModes.preview}/${plantId}`}
+            as={`${TodayRoute}/${PlantInfoViewModes.preview}/${plantId}`}
             passHref
             shallow
         >
@@ -179,24 +180,21 @@ interface LocationDividerProps {
 
 function LocationDivider({ label }: LocationDividerProps) {
     return (
-        <HStack
-            width="100%"
+        <Stack
             marginTop={12}
             marginBottom={4}
             marginLeft={2}
         >
-            <Box height="1px" backgroundColor={useColorModeValue("gray.700", "gray.100")} width={6} />
             <Text
                 as="div"
                 color={useColorModeValue("gray.700", "gray.100")}
                 fontWeight={500}
                 fontSize="xl"
-                paddingLeft={1}
-                paddingRight={1}
             >
                 {label}
             </Text>
-        </HStack>
+            <ShortDivider />
+        </Stack>
     );
 }
 
@@ -252,12 +250,13 @@ export function TodayView({ plants }: TodayViewProps) {
     const router = useRouter();
 
     const handleCloseModal = useCallback(() => {
-        router.push(TodayUrl, undefined, { shallow: true });
+        router.push(TodayRoute, undefined, { shallow: true });
     }, [router]);
 
     return (
-        <>
-            <Box marginLeft={2}>
+        // Must hardcode the marginBottom from PageLayout again otherwise it not's applied when the bottom is reached.
+        <Box marginBottom={PageMarginBottom}>
+            <Stack marginLeft={2} spacing={1}>
                 <Text
                     as="div"
                     fontSize="2xl"
@@ -266,12 +265,12 @@ export function TodayView({ plants }: TodayViewProps) {
                 </Text>
                 <Text
                     as="div"
-                    fontSize="xl"
+                    fontSize="md"
                     color="gray.400"
                 >
                     Water them before they dry out.
                 </Text>
-            </Box>
+            </Stack>
             <ApiErrorBoundary fallbackRender={({ error, resetErrorBoundary }: ApiErrorBoundaryFallbackProps) => (
                 <Error
                     message="We currently cannot load plants, please try again in a few seconds."
@@ -288,6 +287,6 @@ export function TodayView({ plants }: TodayViewProps) {
                 onClose={handleCloseModal}
                 plantId={router.query.id as string}
             />
-        </>
+        </Box>
     );
 }

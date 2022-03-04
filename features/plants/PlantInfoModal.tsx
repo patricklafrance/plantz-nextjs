@@ -56,7 +56,7 @@ import { useEventEmitter, useEventSubcriber } from "@core/events";
 import { useFetchPlant, useResetWatering, useUpdatePlant } from "./http";
 
 import { Formik } from "formik";
-import { PlantListUrl } from "@routes";
+import { PlantListRoute } from "@routes";
 import { buildUrl } from "@core/api/http";
 import { isNil } from "@core/utils";
 import { preserveListQueryParameters } from "./preserveListQueryParameters";
@@ -654,14 +654,14 @@ function _Modal({
     useEventSubcriber(PlantInfoViewModeChangedEvent, ({ viewMode }: PlantInfoViewModeChangedData) => {
         setViewMode(viewMode);
 
-        const url = buildUrl(PlantListUrl, {
+        const url = buildUrl(PlantListRoute, {
             ...preserveListQueryParameters(router.query),
             action: "view",
             id: plantId,
             viewMode
         });
 
-        const as = buildUrl(`${PlantListUrl}/${viewMode}/${plantId}`, preserveListQueryParameters(router.query));
+        const as = buildUrl(`${PlantListRoute}/${viewMode}/${plantId}`, preserveListQueryParameters(router.query));
 
         router.push(url, as, { shallow: true });
     });

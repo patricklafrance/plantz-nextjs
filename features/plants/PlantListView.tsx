@@ -32,7 +32,7 @@ import { ApiErrorBoundary, ApiErrorBoundaryFallbackProps, buildUrl } from "@core
 import { AutoSizer, CellMeasurer, CellMeasurerCache, Index, InfiniteLoader, ListRowProps, List as VirtualizedList, WindowScroller } from "react-virtualized";
 import { CSSProperties, ReactNode, SyntheticEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CloseIcon, DeleteIcon, PlusSquareIcon, SearchIcon, TimeIcon, ViewIcon } from "@chakra-ui/icons";
-import { Error, NoResults } from "@components";
+import { Error, NoResults, ShortDivider } from "@components";
 import { InfiniteData, useQueryClient } from "react-query";
 import { LocationValuesAndLabels, PlantListModel, SearchPlantsModel, WateringTypeValuesAndLabels, searchPlantsValidationSchema } from "./models";
 import { NoResultsClearedEvent, PlantDeletedEvent, SearchQueryChangedData, SearchQueryChangedEvent } from "./events";
@@ -46,7 +46,7 @@ import { AddPlantModal } from "./AddPlantModal";
 import { default as NextLink } from "next/link";
 import { PageData } from "@core/api";
 import { PageMarginBottom } from "@layouts";
-import { PlantListUrl } from "@routes";
+import { PlantListRoute } from "@routes";
 import { RiMapPinLine } from "react-icons/ri";
 import { getPrettyWaterFrequency } from "./getPrettyWaterFrequency";
 import { preserveListQueryParameters } from "./preserveListQueryParameters";
@@ -63,12 +63,12 @@ export interface PlantListViewProps {
 function AddPlantTrigger(props: StyleProps) {
     const router = useRouter();
 
-    const href = buildUrl(PlantListUrl, {
+    const href = buildUrl(PlantListRoute, {
         ...preserveListQueryParameters(router.query),
         action: "add"
     });
 
-    const as = buildUrl(`${PlantListUrl}/add`, preserveListQueryParameters(router.query));
+    const as = buildUrl(`${PlantListRoute}/add`, preserveListQueryParameters(router.query));
 
     return (
         <NextLink
@@ -211,14 +211,14 @@ interface ViewLinkProps {
 function ViewLink({ children, plantId }: ViewLinkProps) {
     const router = useRouter();
 
-    const href = buildUrl(PlantListUrl, {
+    const href = buildUrl(PlantListRoute, {
         ...preserveListQueryParameters(router.query),
         action: "view",
         id: plantId,
         viewMode: PlantInfoViewModes.preview
     });
 
-    const as = buildUrl(`${PlantListUrl}/${PlantInfoViewModes.preview}/${plantId}`, preserveListQueryParameters(router.query));
+    const as = buildUrl(`${PlantListRoute}/${PlantInfoViewModes.preview}/${plantId}`, preserveListQueryParameters(router.query));
 
     return (
         <NextLink
@@ -516,11 +516,12 @@ function List({ plants, query }: PlantListViewProps) {
             <Text
                 as="div"
                 fontSize="lg"
+                fontWeight={500}
                 marginLeft={2}
-                marginBottom={5}
             >
                 Found {totalCount} plants...
             </Text>
+            <ShortDivider marginLeft={2} marginBottom={3} />
             {/* "serverHeight" doesn't seems to do anything. */}
             <WindowScroller serverHeight={800} serverWidth={800}>
                 {({ height, isScrolling, onChildScroll, scrollTop }) => (
@@ -570,7 +571,7 @@ export function PlantListView({ plants, query: initialQuery }: PlantListViewProp
     useEventSubcriber(SearchQueryChangedEvent, ({ query: newQuery }: SearchQueryChangedData) => {
         setQuery(newQuery);
 
-        const url = buildUrl(PlantListUrl, {
+        const url = buildUrl(PlantListRoute, {
             ...preserveListQueryParameters(router.query),
             query: newQuery
         });
@@ -579,7 +580,7 @@ export function PlantListView({ plants, query: initialQuery }: PlantListViewProp
     });
 
     const handleCloseModal = useCallback(() => {
-        const url = buildUrl(PlantListUrl, preserveListQueryParameters(router.query));
+        const url = buildUrl(PlantListRoute, preserveListQueryParameters(router.query));
 
         router.push(url, undefined, { shallow: true });
     }, [router]);
