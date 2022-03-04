@@ -1,6 +1,5 @@
-import { LoginRoute, TodayRoute, isExistingRoute } from "@routes";
-
 import { default as GoogleProvider } from "next-auth/providers/google";
+import { LoginRoute } from "@routes";
 import { default as NextAuth } from "next-auth";
 
 export default NextAuth({

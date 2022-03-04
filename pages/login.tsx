@@ -1,10 +1,10 @@
 import { Box, Button, Center, Divider, Flex, Heading, Stack, Text, useColorModeValue } from "@chakra-ui/react";
-import { TodayRoute, isExistingRoute } from "@routes";
-import { extractRoute, isNil, isNilOrEmpty } from "@core/utils";
 import { getSession, signIn } from "next-auth/react";
 import { useCallback, useState } from "react";
 
 import { GetServerSideProps } from "next";
+import { TodayRoute } from "@routes";
+import { isNil } from "@core/utils";
 
 interface GoogleIconProps {
     active: boolean;
