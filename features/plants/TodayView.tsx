@@ -17,7 +17,6 @@ import { TodayRoute } from "@routes";
 import { getPrettyWaterFrequency } from "./getPrettyWaterFrequency";
 import { toFormattedWateringDate } from "./wateringDate";
 import { transparentize } from "@chakra-ui/theme-tools";
-import { useHasMounted } from "@hooks";
 import { useQueryClient } from "react-query";
 import { useRouter } from "next/router";
 

@@ -1,7 +1,5 @@
 import { Document, ObjectId, WithId } from "mongodb";
 
-/* PLANTS */
-
 export const PlantsCollectionName = "plants";
 
 // TEMPORARY until the locations are dynamic and per user.

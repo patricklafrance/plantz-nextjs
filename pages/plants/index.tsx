@@ -20,6 +20,7 @@ PlantsPage.getLayout = (page: ReactNode) => {
     );
 };
 
+// TODO: query should probably go client side.
 export const getServerSideProps: GetServerSideProps = async ({ query, req }) => {
     const userId = await getUserId(req);
 
