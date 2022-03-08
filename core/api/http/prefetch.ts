@@ -1,18 +1,20 @@
-import { isNil } from "@core/utils";
 import { FetchQueryOptions, QueryClient, QueryFunctionContext } from "react-query";
+
 import { ApiError } from "./apiError";
-import { fetcher } from "./fetcher";
 import { buildFetchKey } from "./useFetchKey";
 import { buildUrl } from "./useUrl";
+import { fetcher } from "./fetcher";
+import { isNil } from "@core/utils";
 
 export interface PrefetchSingleOptions<TModel> extends Omit<FetchQueryOptions<TModel, ApiError, TModel>, "queryFn" | "queryKey"> {
+    idKeyName?: string;
     params?: Record<string, any>;
 }
 
-export function prefetchSingle<TModel>(queryClient: QueryClient, url: string, id: string, { params, ...options }: PrefetchSingleOptions<TModel> = {}) {
+export function prefetchSingle<TModel>(queryClient: QueryClient, url: string, id: string, { idKeyName = "id", params, ...options }: PrefetchSingleOptions<TModel> = {}) {
     const _params = {
+        [idKeyName]: id,
         ...params,
-        id
     };
 
     const queryKey = buildFetchKey(url, _params);

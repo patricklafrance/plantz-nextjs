@@ -2,22 +2,19 @@ import { Flex, HStack, Link, useColorModeValue } from "@chakra-ui/react";
 
 import { ColorModeToggler } from "./ColorModeToggler";
 import { Logo } from "./Logo";
+import { NavComponentProps } from "./useNavComponent";
 import { default as NextLink } from "next/link";
-import { PageMarginX } from "./constants";
+import { PageMarginX } from "./PageContent";
 import { UserMenu } from "./UserMenu";
-import { useIsAuthenticated } from "@core/auth";
+import { isNil } from "@core/utils";
 import { useRouter } from "next/router";
-
-export interface DesktopNavProps {
-    links: { href: string, label: string }[];
-}
 
 interface NavLinkProps {
     href: string;
     text: string;
 }
 
-function NavLink({ href, text }: NavLinkProps) {
+function DesktopLink({ href, text }: NavLinkProps) {
     const router = useRouter();
 
     const isCurrent = router.route === href;
@@ -54,9 +51,7 @@ function NavLink({ href, text }: NavLinkProps) {
     );
 }
 
-export function DesktopNav({ links }: DesktopNavProps) {
-    const isAuthenticated = useIsAuthenticated();
-
+export function DesktopNav({ isAuthenticated, links }: NavComponentProps) {
     return (
         <Flex
             alignItems="center"
@@ -69,10 +64,10 @@ export function DesktopNav({ links }: DesktopNavProps) {
         >
             <HStack flexGrow={1} spacing={{ base: 14, md: 20 }}>
                 <Logo />
-                {isAuthenticated && (
+                {isAuthenticated && !isNil(links) && (
                     <HStack as="nav" spacing={{ base: 8, md: 10 }}>
                         {links.map((x) => (
-                            <NavLink key={x.label} href={x.href} text={x.label} />
+                            <DesktopLink key={x.label} href={x.href} text={x.label} />
                         ))}
                     </HStack>
                 )}

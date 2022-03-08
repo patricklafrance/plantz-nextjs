@@ -1,7 +1,7 @@
 import { addDays, addHours, addWeeks, format, isBefore, isEqual, startOfToday } from "date-fns";
 import { isNil, isNilOrEmpty, removeTimeFromDate } from "@core/utils";
 
-import { WateringFrequency } from "./models";
+import { WateringFrequency } from "./documents";
 
 export function isWateringDue(nextWateringDate?: string) {
     if (isNilOrEmpty(nextWateringDate)) {

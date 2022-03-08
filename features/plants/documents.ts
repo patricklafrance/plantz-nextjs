@@ -1,13 +1,10 @@
-import { Document, WithId } from "mongodb";
+import { Document, ObjectId, WithId } from "mongodb";
 
-export const PlantsCollectionName = process.env.PLANTS_COLLECTION_NAME as string;
+/* PLANTS */
 
-if (!PlantsCollectionName) {
-    throw new Error(
-        "Please define the PLANTS_COLLECTION_NAME environment variable inside .env.local"
-    );
-}
+export const PlantsCollectionName = "plants";
 
+// TEMPORARY until the locations are dynamic and per user.
 export const LocationValuesAndLabels = {
     "basement-back": "Basement (Back)",
     "basement-front": "Basement (Front)",
@@ -58,6 +55,7 @@ export interface PlantDocument extends WithId<Document> {
     name: string;
     nextWateringDate: Date;
     soilType?: string;
+    userId: ObjectId;
     wateringFrequency: WateringFrequency;
     wateringQuantity: string;
     wateringType: WateringType;

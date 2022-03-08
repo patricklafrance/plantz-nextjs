@@ -2,23 +2,27 @@ import { ApiErrorBoundary, ApiErrorBoundaryFallbackProps, buildUrl } from "@core
 import { Box, Divider, Grid, HStack, IconButton, Link, Stack, StyleProps, Tag, TagLabel, TagLeftIcon, Text, useColorModeValue } from "@chakra-ui/react";
 import { CSSProperties, ReactNode, useCallback, useMemo } from "react";
 import { CheckIcon, TimeIcon, ViewIcon } from "@chakra-ui/icons";
-import { DuePlantModel, LocationValuesAndLabels, WateringTypeValuesAndLabels } from "./models";
-import { Error, ShortDivider } from "@components";
+import { Error, NoResults, ShortDivider } from "@components";
+import { LocationValuesAndLabels, WateringTypeValuesAndLabels } from "./documents";
 import { PlantInfoModal, PlantInfoViewMode, PlantInfoViewModes } from "./PlantInfoModal";
+import { RiLeafLine, RiThumbUpLine } from "react-icons/ri";
+import { UserIdContext, useUserIdContext } from "@core/auth";
 import { prefetchPlant, useDuePlants, useResetWatering } from "./http";
 
+import { DuePlantModel } from "./models";
+import { Icon } from "@chakra-ui/react";
 import { default as NextLink } from "next/link";
 import { PageMarginBottom } from "@layouts";
-import { RiLeafLine } from "react-icons/ri";
 import { TodayRoute } from "@routes";
 import { getPrettyWaterFrequency } from "./getPrettyWaterFrequency";
 import { toFormattedWateringDate } from "./wateringDate";
 import { transparentize } from "@chakra-ui/theme-tools";
+import { useHasMounted } from "@hooks";
 import { useQueryClient } from "react-query";
 import { useRouter } from "next/router";
 
 export interface TodayViewProps {
-    plants: DuePlantModel[];
+    userId: string;
 }
 
 interface ViewLinkProps {
@@ -51,9 +55,11 @@ interface NameLinkProps {
 }
 
 function NameLink({ name, plantId }: NameLinkProps) {
+    const userId = useUserIdContext();
+
     const queryClient = useQueryClient();
 
-    const handleMouseEnter = useCallback(() => prefetchPlant(queryClient, plantId), [plantId, queryClient]);
+    const handleMouseEnter = useCallback(() => prefetchPlant(queryClient, userId, plantId), [plantId, queryClient, userId]);
 
     return (
         <ViewLink plantId={plantId}>
@@ -72,9 +78,11 @@ interface ViewButtonProps {
 }
 
 function ViewButton({ plantId }: ViewButtonProps) {
+    const userId = useUserIdContext();
+
     const queryClient = useQueryClient();
 
-    const handleMouseEnter = useCallback(() => prefetchPlant(queryClient, plantId), [plantId, queryClient]);
+    const handleMouseEnter = useCallback(() => prefetchPlant(queryClient, userId, plantId), [plantId, queryClient, userId]);
 
     return (
         <ViewLink plantId={plantId}>
@@ -96,12 +104,17 @@ interface ResetWateringButtonProps {
 }
 
 function ResetWateringButton({ plantId }: ResetWateringButtonProps) {
-    // Display toaster on error.
+    const userId = useUserIdContext();
+
+    // TODO: display toaster on error.
     const { isLoading, mutate: resetWatering } = useResetWatering();
 
     const handleClick = useCallback(() => {
-        resetWatering({ id: plantId });
-    }, [plantId, resetWatering]);
+        resetWatering({
+            id: plantId,
+            userId
+        });
+    }, [plantId, resetWatering, userId]);
 
     return (
         <IconButton
@@ -198,12 +211,8 @@ function LocationDivider({ label }: LocationDividerProps) {
     );
 }
 
-interface ListProps {
-    plants: DuePlantModel[];
-}
-
-function List({ plants }: ListProps) {
-    const { data } = useDuePlants({ initialData: plants });
+function List({ userId }: TodayViewProps) {
+    const { data, isLoading } = useDuePlants(userId);
 
     const byLocation = useMemo(() => {
         const result = data?.reduce((acc, x: DuePlantModel) => {
@@ -223,8 +232,36 @@ function List({ plants }: ListProps) {
         }, {} as Record<string, DuePlantModel[]>);
     }, [data]);
 
+    if (isLoading) {
+        return null;
+    }
+
+    // if (!isFetching && data?.length === 0) {
+    if (data?.length === 0) {
+        return (
+            <NoResults icon={<Icon as={RiThumbUpLine} />}>
+                Congratulations! All your plants are properly watered.
+            </NoResults>
+        );
+    }
+
     return (
         <>
+            <Stack marginLeft={2} spacing={1}>
+                <Text
+                    as="div"
+                    fontSize="2xl"
+                >
+                    These plants needs water today!
+                </Text>
+                <Text
+                    as="div"
+                    fontSize="md"
+                    color="gray.400"
+                >
+                    Water them before they dry out.
+                </Text>
+            </Stack>
             {Object.keys(byLocation).map(x => (
                 <Stack spacing={6} key={x}>
                     <Box>
@@ -246,7 +283,7 @@ function List({ plants }: ListProps) {
     );
 }
 
-export function TodayView({ plants }: TodayViewProps) {
+export function TodayView({ userId }: TodayViewProps) {
     const router = useRouter();
 
     const handleCloseModal = useCallback(() => {
@@ -254,39 +291,28 @@ export function TodayView({ plants }: TodayViewProps) {
     }, [router]);
 
     return (
-        // Must hardcode the marginBottom from PageLayout again otherwise it not's applied when the bottom is reached.
-        <Box marginBottom={PageMarginBottom}>
-            <Stack marginLeft={2} spacing={1}>
-                <Text
-                    as="div"
-                    fontSize="2xl"
-                >
-                    These plants needs water today!
-                </Text>
-                <Text
-                    as="div"
-                    fontSize="md"
-                    color="gray.400"
-                >
-                    Water them before they dry out.
-                </Text>
-            </Stack>
-            <ApiErrorBoundary fallbackRender={({ error, resetErrorBoundary }: ApiErrorBoundaryFallbackProps) => (
-                <Error
-                    message="We currently cannot load plants, please try again in a few seconds."
-                    detail={error.message}
-                    onTryAgain={resetErrorBoundary}
+        <UserIdContext.Provider value={{
+            userId
+        }}>
+            {/* Must hardcode the marginBottom from PageLayout again otherwise it not's applied when the bottom is reached. */}
+            <Box marginBottom={PageMarginBottom} height="100%">
+                <ApiErrorBoundary fallbackRender={({ error, resetErrorBoundary }: ApiErrorBoundaryFallbackProps) => (
+                    <Error
+                        message="We currently cannot load plants, please try again in a few seconds."
+                        detail={error.message}
+                        onTryAgain={resetErrorBoundary}
+                    />
+                )}>
+                    <List userId={userId} />
+                </ApiErrorBoundary>
+                <PlantInfoModal
+                    allowEdit={false}
+                    initialViewMode={router.query.viewMode as PlantInfoViewMode}
+                    isOpen={router.query.action === "view"}
+                    onClose={handleCloseModal}
+                    plantId={router.query.id as string}
                 />
-            )}>
-                <List plants={plants} />
-            </ApiErrorBoundary>
-            <PlantInfoModal
-                allowEdit={false}
-                initialViewMode={router.query.viewMode as PlantInfoViewMode}
-                isOpen={router.query.action === "view"}
-                onClose={handleCloseModal}
-                plantId={router.query.id as string}
-            />
-        </Box>
+            </Box>
+        </UserIdContext.Provider>
     );
 }

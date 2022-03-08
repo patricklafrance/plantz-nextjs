@@ -39,21 +39,15 @@ import {
     useColorModeValue
 } from "@chakra-ui/react";
 import { CheckIcon, DeleteIcon, EditIcon, LinkIcon, QuestionIcon, TimeIcon, ViewIcon } from "@chakra-ui/icons";
-import {
-    EditPlantModel,
-    LocationValuesAndLabels,
-    LuminosityValuesAndLabels,
-    PlantModel,
-    WateringFrequencyValuesAndLabels,
-    WateringTypeValuesAndLabels,
-    editPlantValidationSchema
-} from "./models";
+import { EditPlantModel, PlantModel, editPlantValidationSchema } from "./models";
+import { LocationValuesAndLabels, LuminosityValuesAndLabels, WateringFrequencyValuesAndLabels, WateringTypeValuesAndLabels } from "./documents";
 import { RiCalendarLine, RiDropLine, RiLeafLine, RiShowersLine, RiSunLine } from "react-icons/ri";
 import { SyntheticEvent, useCallback, useRef, useState } from "react";
 import { canResetWatering, isWateringDue, toFormattedWateringDate } from "./wateringDate";
 import { getErrorMessage, isValid } from "@core/validation";
 import { useEventEmitter, useEventSubcriber } from "@core/events";
 import { useFetchPlant, useResetWatering, useUpdatePlant } from "./http";
+import { useUserId, useUserIdContext } from "@core/auth";
 
 import { Formik } from "formik";
 import { PlantListRoute } from "@routes";
@@ -242,12 +236,17 @@ interface ResetWateringButtonProps {
 }
 
 function ResetWateringButton({ colorScheme, plantId }: ResetWateringButtonProps) {
+    const userId = useUserIdContext();
+
     // TODO: display toaster on error.
     const { isLoading, mutate: resetWatering } = useResetWatering();
 
     const handleClick = useCallback(() => {
-        resetWatering({ id: plantId as string });
-    }, [plantId, resetWatering]);
+        resetWatering({
+            id: plantId as string,
+            userId
+        });
+    }, [plantId, resetWatering, userId]);
 
     return (
         <Button
@@ -416,6 +415,8 @@ function EditPlant({
     formId,
     plant
 }: EditPlantProps) {
+    const userId = useUserId();
+
     const emit = useEventEmitter();
 
     const { error, isError, isLoading, mutateAsync: updatePlant } = useUpdatePlant();
@@ -431,7 +432,9 @@ function EditPlant({
     const handleSubmit = useCallback(async (values: EditPlantModel) => {
         try {
             emit(PlantInfoSavingEvent);
+
             await updatePlant(values);
+
             emit(PlantInfoSavingCompletedEvent);
 
             switchToPreview();
@@ -465,6 +468,7 @@ function EditPlant({
                     mistLeaves: plant?.mistLeaves ?? false,
                     name: plant?.name ?? "",
                     soilType: plant?.soilType ?? "",
+                    userId,
                     wateringFrequency: plant?.wateringFrequency ?? "1-week",
                     wateringQuantity: plant?.wateringQuantity ?? "",
                     wateringType: plant?.wateringType ?? "deep"
@@ -480,6 +484,8 @@ function EditPlant({
                             <form
                                 id={formId}
                                 onSubmit={(event: SyntheticEvent) => {
+                                    console.log("**** inline edit");
+
                                     event.preventDefault();
                                     submitForm();
                                 }}
@@ -577,6 +583,10 @@ function EditPlant({
                                     {...getFieldProps("id")}
                                     type="hidden"
                                 />
+                                <input
+                                    {...getFieldProps("userId")}
+                                    type="hidden"
+                                />
                             </form>
                             {isError && (
                                 <Alert status="error" marginTop={6}>
@@ -643,13 +653,15 @@ function _Modal({
     onClose,
     plantId
 }: _ModalProps) {
+    const userId = useUserId();
+
     const router = useRouter();
 
     const [viewMode, setViewMode] = useState(allowEdit ? initialViewMode : PlantInfoViewModes.preview);
 
     const [isSaving, setIsSaving] = useState(false);
 
-    const { data: plant } = useFetchPlant(plantId);
+    const { data: plant } = useFetchPlant(userId, plantId);
 
     useEventSubcriber(PlantInfoViewModeChangedEvent, ({ viewMode }: PlantInfoViewModeChangedData) => {
         setViewMode(viewMode);

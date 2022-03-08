@@ -5,6 +5,7 @@
             "@components": ["components/index.ts"],
             "@core/*": ["core/*"],
             "@features/*": ["features/*"],
+            "@hooks": ["hooks/index.ts"],
             "@layouts": ["layouts/index.ts"],
             "@routes": ["routes/index.ts"]
         },

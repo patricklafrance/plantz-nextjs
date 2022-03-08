@@ -51,7 +51,7 @@ function useCommand<TVariables, TData = unknown>(url: string, method: Omit<HttpM
             : (invalidateKeys as InvalidateKeysFunction<TVariables>)(variables);
 
         if (!Array.isArray(queryKeys)) {
-            throw new Error("\"invalidateKeys\" function must return an array of fetch keys.");
+            throw "\"invalidateKeys\" function must return an array of fetch keys.";
         }
 
         queryKeys.forEach(x => {

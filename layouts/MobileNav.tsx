@@ -12,10 +12,11 @@ import { CloseIcon, HamburgerIcon } from "@chakra-ui/icons";
 
 import { ColorModeToggler } from "./ColorModeToggler";
 import { Logo } from "./Logo";
+import { NavComponentProps } from "./useNavComponent";
 import { default as NextLink } from "next/link";
-import { PageMarginX } from "./constants";
+import { PageMarginX } from "./PageContent";
 import { UserMenu } from "./UserMenu";
-import { useIsAuthenticated } from "@core/auth";
+import { isNil } from "@core/utils";
 import { useRouter } from "next/router";
 
 export interface MobileNavProps {
@@ -27,7 +28,7 @@ interface NavLinkProps {
     text: string;
 }
 
-function NavLink({ href, text }: NavLinkProps) {
+function MobileLink({ href, text }: NavLinkProps) {
     const router = useRouter();
 
     const isCurrent = router.route === href;
@@ -57,10 +58,10 @@ function NavLink({ href, text }: NavLinkProps) {
     );
 }
 
-export function MobileNav({ links }: MobileNavProps) {
-    const isAuthenticated = useIsAuthenticated();
-
+export function MobileNav({ isAuthenticated, links }: NavComponentProps) {
     const { isOpen, onClose, onOpen } = useDisclosure();
+
+    const hasLinks = isAuthenticated && !isNil(links);
 
     return (
         <Box
@@ -71,27 +72,27 @@ export function MobileNav({ links }: MobileNavProps) {
             backgroundColor={useColorModeValue("gray.50", "gray.900")}
         >
             <Flex alignItems="center">
-                {isAuthenticated && (
+                {hasLinks && (
                     <IconButton
                         icon={isOpen ? <CloseIcon /> : <HamburgerIcon />}
                         aria-label="Open Menu"
                         onClick={isOpen ? onClose : onOpen}
                     />
                 )}
-                <HStack flexGrow={1} justifyContent={isAuthenticated ? "center" : "initial"}>
+                <HStack flexGrow={1} justifyContent={hasLinks ? "center" : "initial"}>
                     <Logo />
                 </HStack>
                 {isAuthenticated ? <UserMenu /> : <ColorModeToggler />}
             </Flex>
 
-            {isAuthenticated && isOpen ? (
+            {hasLinks && isOpen ? (
                 <Box
                     marginTop={7}
                     paddingBottom={4}
                 >
                     <Stack as="nav" spacing={3}>
                         {links.map(x => (
-                            <NavLink key={x.label} href={x.href} text={x.label} />
+                            <MobileLink key={x.label} href={x.href} text={x.label} />
                         ))}
                     </Stack>
                 </Box>

@@ -5,8 +5,6 @@ import { isNil } from "@core/utils";
 const Uri = process.env.MONGODB_URI;
 const DbName = process.env.MONGODB_DB;
 
-// TODO: should probably use a Nextjs middleware to have a database connection per request.
-
 // /**
 //  * Global is used here to maintain a cached connection across hot reloads
 //  * in development. This prevents connections growing exponentiatlly
@@ -16,7 +14,7 @@ const DbName = process.env.MONGODB_DB;
 // @ts-ignore
 global.mongoDb = global.mongoDb || {};
 
-export async function connect() {
+export async function connectMongoDb() {
     // @ts-ignore
     if (isNil(global.mongoDb.database)) {
         try {

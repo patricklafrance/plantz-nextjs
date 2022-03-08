@@ -31,12 +31,13 @@ import {
 import { ApiErrorBoundary, ApiErrorBoundaryFallbackProps, buildUrl } from "@core/api/http";
 import { AutoSizer, CellMeasurer, CellMeasurerCache, Index, InfiniteLoader, ListRowProps, List as VirtualizedList, WindowScroller } from "react-virtualized";
 import { CSSProperties, ReactNode, SyntheticEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { CloseIcon, DeleteIcon, PlusSquareIcon, SearchIcon, TimeIcon, ViewIcon } from "@chakra-ui/icons";
+import { CloseIcon, DeleteIcon, PlusSquareIcon, Search2Icon, SearchIcon, TimeIcon, ViewIcon } from "@chakra-ui/icons";
 import { Error, NoResults, ShortDivider } from "@components";
-import { InfiniteData, useQueryClient } from "react-query";
-import { LocationValuesAndLabels, PlantListModel, SearchPlantsModel, WateringTypeValuesAndLabels, searchPlantsValidationSchema } from "./models";
+import { LocationValuesAndLabels, WateringTypeValuesAndLabels } from "./documents";
 import { NoResultsClearedEvent, PlantDeletedEvent, SearchQueryChangedData, SearchQueryChangedEvent } from "./events";
 import { PlantInfoModal, PlantInfoViewMode, PlantInfoViewModes } from "./PlantInfoModal";
+import { PlantListModel, SearchPlantsModel, searchPlantsValidationSchema } from "./models";
+import { UserIdContext, useUserIdContext } from "@core/auth";
 import { isNil, isNilOrEmpty } from "@core/utils";
 import { isWateringDue, toFormattedWateringDate } from "./wateringDate";
 import { prefetchPlant, useDeletePlant, useSearchPlants } from "./http";
@@ -44,7 +45,6 @@ import { useEventEmitter, useEventSubcriber } from "@core/events";
 
 import { AddPlantModal } from "./AddPlantModal";
 import { default as NextLink } from "next/link";
-import { PageData } from "@core/api";
 import { PageMarginBottom } from "@layouts";
 import { PlantListRoute } from "@routes";
 import { RiMapPinLine } from "react-icons/ri";
@@ -53,11 +53,12 @@ import { preserveListQueryParameters } from "./preserveListQueryParameters";
 import { transparentize } from "@chakra-ui/theme-tools";
 import { useFormik } from "formik";
 import { useFormikState } from "@core/validation";
+import { useQueryClient } from "react-query";
 import { useRouter } from "next/router";
 
 export interface PlantListViewProps {
-    plants: InfiniteData<PageData<PlantListModel[]>>,
     query?: string;
+    userId: string;
 }
 
 function AddPlantTrigger(props: StyleProps) {
@@ -148,7 +149,7 @@ function SearchPlantsInput({ query, ...props }: SearchPlantsInputProps) {
             <FormControl
                 isInvalid={isValid("query")}
                 alignSelf="start"
-                width={{ base: "100%", sm: "400px" }}
+                width={{ base: "100%", md: "400px" }}
             >
                 <InputGroup>
                     <Input
@@ -190,9 +191,9 @@ interface ListHeaderProps {
 function ListHeader({ query = "" }: ListHeaderProps) {
     return (
         <Grid
-            templateAreas={{ base: "\"add-plant\" \"search\"", lg: "\"search add-plant\"" }}
-            templateColumns={{ lg: "1fr max-content" }}
-            gap={{ base: 6, lg: 12 }}
+            templateAreas={{ base: "\"add-plant\" \"search\"", md: "\"search add-plant\"" }}
+            templateColumns={{ md: "1fr max-content" }}
+            gap={{ base: 6, md: 12 }}
             marginBottom={7}
             marginLeft={2}
             marginRight={2}
@@ -238,9 +239,11 @@ interface NameLinkProps {
 }
 
 function NameLink({ name, plantId }: NameLinkProps) {
+    const userId = useUserIdContext();
+
     const queryClient = useQueryClient();
 
-    const handleMouseEnter = useCallback(() => prefetchPlant(queryClient, plantId), [plantId, queryClient]);
+    const handleMouseEnter = useCallback(() => prefetchPlant(queryClient, userId, plantId), [plantId, queryClient, userId]);
 
     return (
         <ViewLink plantId={plantId}>
@@ -259,9 +262,11 @@ interface ViewButtonProps {
 }
 
 function ViewButton({ plantId }: ViewButtonProps) {
+    const userId = useUserIdContext();
+
     const queryClient = useQueryClient();
 
-    const handleMouseEnter = useCallback(() => prefetchPlant(queryClient, plantId), [plantId, queryClient]);
+    const handleMouseEnter = useCallback(() => prefetchPlant(queryClient, userId, plantId), [plantId, queryClient, userId]);
 
     return (
         <ViewLink plantId={plantId}>
@@ -284,6 +289,8 @@ interface DeleteButtonProps {
 }
 
 function DeleteButton({ plantId, plantName }: DeleteButtonProps) {
+    const userId = useUserIdContext();
+
     const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
 
     const cancelButtonRef = useRef<HTMLButtonElement>(null);
@@ -326,9 +333,13 @@ function DeleteButton({ plantId, plantName }: DeleteButtonProps) {
     }, [setIsConfirmationOpen]);
 
     const handleConfirm = useCallback(() => {
-        deletePlant({ id: plantId });
+        deletePlant({
+            id: plantId,
+            userId
+        });
+
         setIsConfirmationOpen(false);
-    }, [deletePlant, plantId, setIsConfirmationOpen]);
+    }, [deletePlant, plantId, setIsConfirmationOpen, userId]);
 
     return (
         <>
@@ -431,8 +442,8 @@ const rowMeasurementsCache = new CellMeasurerCache({
     fixedWidth: true
 });
 
-function List({ plants, query }: PlantListViewProps) {
-    const { data, fetchNextPage, hasNextPage, isFetchingNextPage, totalCount } = useSearchPlants({ initialData: plants, query });
+function List({ query, userId }: PlantListViewProps) {
+    const { data, fetchNextPage, hasNextPage, isLoading, totalCount } = useSearchPlants(userId);
 
     const emit = useEventEmitter();
 
@@ -502,9 +513,17 @@ function List({ plants, query }: PlantListViewProps) {
         emit(NoResultsClearedEvent);
     }, [emit]);
 
-    if (!isFetchingNextPage && data?.pages[0]?.data.length === 0) {
+    if (isLoading) {
+        return null;
+    }
+
+    // if (!isFetchingNextPage && data?.pages[0]?.data.length === 0) {
+    if (data?.pages[0]?.data.length === 0) {
         return (
-            <NoResults onClear={!isNil(query) ? handleClearNoResults : undefined}>
+            <NoResults
+                icon={<Search2Icon />}
+                onClear={!isNil(query) ? handleClearNoResults : undefined}
+            >
                 No plants match your search criteria, please try again.
             </NoResults>
         );
@@ -558,7 +577,7 @@ function List({ plants, query }: PlantListViewProps) {
     );
 }
 
-export function PlantListView({ plants, query: initialQuery }: PlantListViewProps) {
+export function PlantListView({ query: initialQuery, userId }: PlantListViewProps) {
     const router = useRouter();
 
     const [query, setQuery] = useState(initialQuery);
@@ -586,27 +605,31 @@ export function PlantListView({ plants, query: initialQuery }: PlantListViewProp
     }, [router]);
 
     return (
-        <Flex direction="column" height="100%">
-            <ListHeader query={query} />
-            <ApiErrorBoundary fallbackRender={({ error, resetErrorBoundary }: ApiErrorBoundaryFallbackProps) => (
-                <Error
-                    message="We currently cannot load plants, please try again in a few seconds."
-                    detail={error.message}
-                    onTryAgain={resetErrorBoundary}
+        <UserIdContext.Provider value={{
+            userId
+        }}>
+            <Flex direction="column" height="100%">
+                <ListHeader query={query} />
+                <ApiErrorBoundary fallbackRender={({ error, resetErrorBoundary }: ApiErrorBoundaryFallbackProps) => (
+                    <Error
+                        message="We currently cannot load plants, please try again in a few seconds."
+                        detail={error.message}
+                        onTryAgain={resetErrorBoundary}
+                    />
+                )}>
+                    <List query={query} userId={userId} />
+                </ApiErrorBoundary>
+                <AddPlantModal
+                    isOpen={router.query.action === "add"}
+                    onClose={handleCloseModal}
                 />
-            )}>
-                <List plants={plants} query={query} />
-            </ApiErrorBoundary>
-            <AddPlantModal
-                isOpen={router.query.action === "add"}
-                onClose={handleCloseModal}
-            />
-            <PlantInfoModal
-                initialViewMode={router.query.viewMode as PlantInfoViewMode}
-                isOpen={router.query.action === "view"}
-                onClose={handleCloseModal}
-                plantId={router.query.id as string}
-            />
-        </Flex>
+                <PlantInfoModal
+                    initialViewMode={router.query.viewMode as PlantInfoViewMode}
+                    isOpen={router.query.action === "view"}
+                    onClose={handleCloseModal}
+                    plantId={router.query.id as string}
+                />
+            </Flex>
+        </UserIdContext.Provider>
     );
 }

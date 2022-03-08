@@ -1,7 +1,9 @@
-import { PageSize, searchPlants } from "@features/plants/server";
-import { PlantListView, PlantListViewProps, toPlantListModel } from "@features/plants";
+import { PlantListView, PlantListViewProps } from "@features/plants";
 
+import { AuthenticatedLayout } from "@layouts";
 import { GetServerSideProps } from "next";
+import { ReactNode } from "react";
+import { getUserId } from "@core/auth/getUserId";
 import { isNil } from "@core/utils";
 
 export default function PlantsPage(props: PlantListViewProps) {
@@ -10,23 +12,21 @@ export default function PlantsPage(props: PlantListViewProps) {
     );
 }
 
-PlantsPage.pageTitle = "Plants";
+PlantsPage.getLayout = (page: ReactNode) => {
+    return (
+        <AuthenticatedLayout pageTitle="Plants">
+            {page}
+        </AuthenticatedLayout>
+    );
+};
 
-export const getServerSideProps: GetServerSideProps = async ({ query }) => {
+export const getServerSideProps: GetServerSideProps = async ({ query, req }) => {
+    const userId = await getUserId(req);
+
     const searchQuery =  query.query as string | undefined;
 
-    const { results, totalCount } = await searchPlants(1, { query: searchQuery });
-
     const props: PlantListViewProps = {
-        plants: {
-            pageParams: [1],
-            pages: [{
-                data: results.map(x => toPlantListModel(x)),
-                nextPage: totalCount > PageSize ? 2 : null,
-                previousPage: null,
-                totalCount
-            }]
-        }
+        userId
     };
 
     if (!isNil(searchQuery)) {

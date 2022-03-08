@@ -1,10 +1,7 @@
 import { Box, Button, Center, Divider, Flex, Heading, Stack, Text, useColorModeValue } from "@chakra-ui/react";
-import { getSession, signIn } from "next-auth/react";
 import { useCallback, useState } from "react";
 
-import { GetServerSideProps } from "next";
-import { TodayRoute } from "@routes";
-import { isNil } from "@core/utils";
+import { signIn } from "next-auth/react";
 
 interface GoogleIconProps {
     active: boolean;
@@ -95,7 +92,7 @@ function GoogleButton({ onClick }: GoogleButtonProps) {
     );
 }
 
-export default function LoginPage() {
+export function LoginView() {
     const handleLogin = useCallback(() => {
         signIn("google");
     }, []);
@@ -103,16 +100,15 @@ export default function LoginPage() {
     return (
         <Flex
             width="100%"
-            height="100%"
             justifyContent="center"
+            position="relative"
+            top="30%"
         >
             <Flex
                 direction={{ base: "column", sm: "row" }}
                 alignItems={{ base: "center", sm: "initial" }}
                 gap={{ base: 6, sm: "140px" }}
                 height="max-content"
-                position="relative"
-                top="30%"
             >
                 <Stack alignItems={{ base: "center", sm: "initial" }}>
                     <Heading
@@ -138,24 +134,3 @@ export default function LoginPage() {
         </Flex>
     );
 }
-
-LoginPage.pageTitle = "Login";
-
-export const getServerSideProps: GetServerSideProps = async ({ query, req }) => {
-    const session = await getSession({ req });
-
-    if (!isNil(session)) {
-        const callbackUrl = query.callbackUrl as string;
-
-        return {
-            redirect: {
-                destination: !isNil(callbackUrl) ? callbackUrl : TodayRoute,
-                permanent: false
-            }
-        };
-    }
-
-    return {
-        props: {}
-    };
-};

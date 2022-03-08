@@ -1,8 +1,9 @@
 import { TodayView, TodayViewProps } from "@features/plants/TodayView";
 
+import { AuthenticatedLayout } from "@layouts";
 import { GetServerSideProps } from "next";
-import { getDuePlants } from "@features/plants/server";
-import { toDuePlantModel } from "@features/plants";
+import { ReactNode } from "react";
+import { getUserId } from "@core/auth/getUserId";
 
 export default function TodayPage(props: TodayViewProps) {
     return (
@@ -10,14 +11,20 @@ export default function TodayPage(props: TodayViewProps) {
     );
 }
 
-TodayPage.pageTitle = "Today";
+TodayPage.getLayout = (page: ReactNode) => {
+    return (
+        <AuthenticatedLayout pageTitle="Today">
+            {page}
+        </AuthenticatedLayout>
+    );
+};
 
-export const getServerSideProps: GetServerSideProps = async () => {
-    const results = await getDuePlants();
+export const getServerSideProps: GetServerSideProps = async ({ req }) => {
+    const userId = await getUserId(req);
 
     return {
         props: {
-            plants: results.map(x => toDuePlantModel(x))
+            userId
         }
     };
 };

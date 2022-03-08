@@ -1,7 +1,7 @@
 import { isNil, isNilOrEmpty, useComplexDependency } from "@core/utils";
+
+import { QueryKey } from "react-query";
 import { useMemo } from "react";
-import { QueryKey, UseQueryOptions } from "react-query";
-import { ApiError } from "./apiError";
 
 export function buildFetchKey(url: string, params?: Record<string, any>) {
     const values = isNil(params)

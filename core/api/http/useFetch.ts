@@ -34,10 +34,14 @@ export function useFetchCollection<TModel>(url: string, options?: UseFetchOption
     return useFetch<TModel>(url, options);
 }
 
-export function useFetchSingle<TModel>(url: string, id: string, { params, ...options }: UseFetchOptions<Nullable<TModel>> = {}) {
+export interface UserFetchSingle<TModel> extends UseFetchOptions<TModel> {
+    idKeyName?: string;
+}
+
+export function useFetchSingle<TModel>(url: string, id: string, { idKeyName = "id", params, ...options }: UserFetchSingle<Nullable<TModel>> = {}) {
     const _params = {
+        [idKeyName]: id,
         ...params,
-        id
     };
 
     return useFetch<Nullable<TModel>>(url, {

@@ -1,4 +1,4 @@
-import { AddPlantModel, LocationValuesAndLabels, LuminosityValuesAndLabels, WateringFrequencyValuesAndLabels, WateringTypeValuesAndLabels, addPlantValidationSchema } from "./models";
+import { AddPlantModel, addPlantValidationSchema } from "./models";
 import {
     Alert,
     AlertDescription,
@@ -25,6 +25,7 @@ import {
     Tooltip,
     useBreakpointValue
 } from "@chakra-ui/react";
+import { LocationValuesAndLabels, LuminosityValuesAndLabels, WateringFrequencyValuesAndLabels, WateringTypeValuesAndLabels } from "./documents";
 import { SyntheticEvent, useCallback } from "react";
 import { getErrorMessage, isValid } from "@core/validation";
 
@@ -34,6 +35,7 @@ import { QuestionIcon } from "@chakra-ui/icons";
 import { isNil } from "@core/utils";
 import { useAddPlant } from "./http";
 import { useEventEmitter } from "@core/events";
+import { useUserId } from "@core/auth";
 
 export interface AddPlantModalProps {
     isOpen: boolean;
@@ -45,6 +47,8 @@ interface _ModalProps {
 }
 
 function _Modal({ onClose }: _ModalProps) {
+    const userId = useUserId();
+
     const emit = useEventEmitter();
 
     const { error, isError, isLoading, mutateAsync: addPlant } = useAddPlant();
@@ -78,6 +82,7 @@ function _Modal({ onClose }: _ModalProps) {
                             mistLeaves: false,
                             name: "Philodendron cordatum",
                             soilType: "",
+                            userId,
                             wateringFrequency: "1-week",
                             wateringQuantity: "100ml",
                             wateringType: "surface"
@@ -185,6 +190,10 @@ function _Modal({ onClose }: _ModalProps) {
                                             <FormErrorMessage>{getErrorMessage("wateringType", formikState)}</FormErrorMessage>
                                         </FormControl>
                                     </Box>
+                                    <input
+                                        {...getFieldProps("userId")}
+                                        type="hidden"
+                                    />
                                     {isError && (
                                         <Alert status="error" marginTop={6}>
                                             <AlertIcon />

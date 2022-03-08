@@ -6,7 +6,7 @@ function parseId(pathname: string) {
     return pathname.substring(pathname.lastIndexOf("/") + 1);
 }
 
-export default function rewriteUrl(req: NextRequest, ev: NextFetchEvent) {
+export default function rewriteModalRoutes(req: NextRequest, ev: NextFetchEvent) {
     const { pathname } = req.nextUrl;
 
     if (pathname.startsWith(`${TodayRoute}/preview`)) {

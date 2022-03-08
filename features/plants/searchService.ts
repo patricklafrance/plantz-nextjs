@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb";
 import { PlantDocument } from "./documents";
 import { PlantsCollectionName } from "@features/plants/server";
 import { queryMongoDb } from "@core/mongoDb/server";
@@ -14,14 +15,19 @@ export interface SearchPlantsResult {
     totalCount: number;
 }
 
-export function searchPlants(page: number = 1, { query }: SearchPlantsOptions = {}) {
-    const params = query
+export function searchPlants(userId: string, page: number = 1, { query }: SearchPlantsOptions = {}) {
+    const queryParams = query
         ? {
             $text: {
                 $search: query
             }
         }
         : {};
+
+    const params = {
+        userId: new ObjectId(userId),
+        ...queryParams
+    };
 
     return queryMongoDb(async database => {
         const count = await database
@@ -44,14 +50,15 @@ export function searchPlants(page: number = 1, { query }: SearchPlantsOptions = 
     });
 }
 
-export function getDuePlants() {
+export function getDuePlants(userId: string) {
     return queryMongoDb(async database => {
         const today = startOfToday();
 
         return database
             .collection<PlantDocument>(PlantsCollectionName)
             .find({
-                nextWateringDate: { $lte: today }
+                nextWateringDate: { $lte: today },
+                userId: new ObjectId(userId)
             })
             .limit(PageSize)
             // eslint-disable-next-line sort-keys-fix/sort-keys-fix

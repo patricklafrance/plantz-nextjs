@@ -9,19 +9,21 @@ import { apiHandler, withQueryValidation } from "@core/api/handlers/server";
 interface SearchPlantsQuery {
     page: string;
     query?: string;
+    userId: string;
 }
 
 const searchPlantsQueryValidationSchema = Yup.object({
     page: Yup.number().required(),
-    query: Yup.string()
+    query: Yup.string(),
+    userId: Yup.string().required()
 });
 
 async function handleGet(req: NextApiRequest, res: NextApiResponse<ApiGetResponse<PageData<PlantListModel[]>>>) {
-    const { page, query } = (req.query as unknown) as SearchPlantsQuery;
+    const { page, query, userId } = (req.query as unknown) as SearchPlantsQuery;
 
     const _page = parseInt(page);
 
-    const { results, totalCount } = await searchPlants(_page, { query });
+    const { results, totalCount } = await searchPlants(userId, _page, { query });
 
     res.status(200).json({
         data: {

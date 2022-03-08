@@ -37,6 +37,9 @@ export function UserMenu() {
                 cursor="pointer"
                 minWidth={0}
                 title={session?.user?.name as string}
+                _hover={{
+                    textDecoration: "none"
+                }}
             >
                 <Avatar
                     size="sm"

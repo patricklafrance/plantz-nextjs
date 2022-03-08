@@ -1,19 +1,19 @@
 import "./_app.css";
 
 import { ApiClientFailureReasons, isApiError } from "@core/api/http";
+import { Component, ReactNode } from "react";
 import { ErrorBoundary, FallbackProps } from "react-error-boundary";
 import { NextRouter, Router, withRouter } from "next/router";
 import { QueryClient, QueryClientProvider, useQueryErrorResetBoundary } from "react-query";
 
 import { AppProps } from "next/app";
 import { ChakraProvider } from "@chakra-ui/react";
-import { Component } from "react";
 import { Error } from "@components";
 import { LoginRoute } from "@routes";
 import { NextPage } from "next";
-import { PageLayout } from "@layouts";
 import { ReactQueryDevtools } from "react-query/devtools";
 import { SessionProvider } from "next-auth/react";
+import { isNil } from "@core/utils";
 import { default as nProgress } from "nprogress";
 
 // nProgress setup, read https://www.akmittal.dev/posts/nextjs-navigation-progress-bar.
@@ -22,7 +22,7 @@ Router.events.on("routeChangeError", nProgress.done);
 Router.events.on("routeChangeComplete", nProgress.done);
 
 export type Page = NextPage & {
-    pageTitle?: string;
+    getLayout: (page: ReactNode) => ReactNode;
 }
 
 interface AppPropsWithPageTitle extends AppProps {
@@ -83,6 +83,24 @@ function App({
 }: AppPropsWithPageTitle) {
     const { reset } = useQueryErrorResetBoundary();
 
+    // This is a page owned by NextJs.
+    if (isNil(Component.getLayout)) {
+        return (
+            <Component {...pageProps} />
+        );
+    }
+
+    const Layout = Component.getLayout(
+        <UnauthorizedErrorBoundary>
+            <ErrorBoundary
+                fallbackRender={props => <UnmanagedErrorFallback {...props} />}
+                onReset={reset}
+            >
+                <Component {...pageProps} />
+            </ErrorBoundary>
+        </UnauthorizedErrorBoundary>
+    );
+
     return (
         <QueryClientProvider client={queryClient}>
             <ChakraProvider>
@@ -91,16 +109,7 @@ function App({
                     refetchInterval={0}
                     refetchOnWindowFocus={false}
                 >
-                    <PageLayout pageTitle={Component.pageTitle}>
-                        <UnauthorizedErrorBoundary>
-                            <ErrorBoundary
-                                fallbackRender={props => <UnmanagedErrorFallback {...props} />}
-                                onReset={reset}
-                            >
-                                <Component {...pageProps} />
-                            </ErrorBoundary>
-                        </UnauthorizedErrorBoundary>
-                    </PageLayout>
+                    {Layout}
                 </SessionProvider>
             </ChakraProvider>
             <ReactQueryDevtools />

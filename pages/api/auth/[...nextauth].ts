@@ -1,17 +1,38 @@
+import { LoginRoute, NewUserRoute } from "@routes";
+
 import { default as GoogleProvider } from "next-auth/providers/google";
-import { LoginRoute } from "@routes";
+import { MongoClient } from "mongodb";
+import { MongoDBAdapter } from "@next-auth/mongodb-adapter";
 import { default as NextAuth } from "next-auth";
+import { connectMongoDb } from "@core/mongoDb/server";
+import { isNil } from "@core/utils";
 
 export default NextAuth({
+    adapter: MongoDBAdapter(new Promise<MongoClient>((resolve, reject) => {
+        connectMongoDb()
+            .then(({ client }: { client: MongoClient }) => {
+                resolve(client);
+            })
+            .catch(reject);
+    })),
     callbacks: {
-        signIn: async (context) => {
-            // console.log("signin: ", context);
+        jwt: async ({ token, user }) => {
+            if (user) {
+                token.userId = user.id;
+            }
 
-            // TODO: create a new account if new.
-            return true;
+            return token;
+        },
+        session: async ({ session, token }) => {
+            if (!isNil(session.user) && !isNil(token)) {
+                session.user.id = token.userId;
+            }
+
+            return session;
         }
     },
     pages: {
+        newUser: NewUserRoute,
         signIn: LoginRoute
     },
     providers: [
@@ -20,10 +41,10 @@ export default NextAuth({
             clientSecret: process.env.GOOGLE_SECRET as string
         })
     ],
-    // Required to encrypt the JWT token.
     secret: process.env.NEXTAUTH_SECRET,
     session: {
-        // 999 days.
-        maxAge: 999 * 24 * 60 * 60
+        // 999 days
+        maxAge: 999 * 24 * 60 * 60,
+        strategy: "jwt"
     }
 });

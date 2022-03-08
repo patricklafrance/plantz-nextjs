@@ -8,21 +8,31 @@ import { executeMongoDb } from "@core/mongoDb/server";
 import { getNextWateringDate } from "@features/plants";
 
 async function handlePost(req: NextApiRequest, res: NextApiResponse<ApiCommandResponse>) {
-    const { id } = req.body;
+    const { id, userId } = req.body;
+
+    const _id = new ObjectId(id);
+    const _userId = new ObjectId(userId);
 
     await executeMongoDb(async database => {
         const document = await database
             .collection(PlantsCollectionName)
-            .findOne({ _id: new ObjectId(id as string) }) as PlantDocument;
+            .findOne({
+                _id: _id,
+                userId: _userId
+            }) as PlantDocument;
 
         return database
             .collection(PlantsCollectionName)
             .replaceOne(
-                { _id: new ObjectId(id) },
+                {
+                    _id: _id,
+                    userId: _userId
+                },
                 {
                     ...document,
                     lastUpdateDate: new Date(),
-                    nextWateringDate: getNextWateringDate(new Date(), document.wateringFrequency)
+                    nextWateringDate: getNextWateringDate(new Date(), document.wateringFrequency),
+                    userId: _userId
                 } as PlantDocument
             );
     });
