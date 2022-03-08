@@ -26,6 +26,8 @@ export interface UseSearchPlantsOptions {
 }
 
 export function useSearchPlants(userId: string, { query }: UseSearchPlantsOptions = {}) {
+    console.log(query);
+
     return useInfiniteFetch<PlantListModel[]>(SearchPlantsUrl, {
         params: { query: query ?? "", userId }
         // https://react-query.tanstack.com/guides/initial-query-data

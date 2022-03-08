@@ -443,7 +443,9 @@ const rowMeasurementsCache = new CellMeasurerCache({
 });
 
 function List({ query, userId }: PlantListViewProps) {
-    const { data, fetchNextPage, hasNextPage, isLoading, totalCount } = useSearchPlants(userId);
+    const { data, fetchNextPage, hasNextPage, isLoading, totalCount } = useSearchPlants(userId, {
+        query
+    });
 
     const emit = useEventEmitter();
 
