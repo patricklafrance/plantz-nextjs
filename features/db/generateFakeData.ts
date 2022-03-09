@@ -1,10 +1,9 @@
 import { Db, Document, ObjectId } from "mongodb";
 import { PlantsCollectionName, WateringFrequency } from "@features/plants/server";
 
+import { PlantsData } from "./data";
 import { faker } from "@faker-js/faker";
-import fs from "fs";
 import { getNextWateringDate } from "@features/plants";
-import parse from "csv-parse";
 
 const Families = ["Umbelliferae", "Lamiaceae", "Solanaceae", "Asteraceae", "Brassicaceae", "Liliaceae", "Rosaceae", "Cucurbitaceae"];
 
@@ -17,31 +16,6 @@ const SoilTypes = ["Sand", "Silt", "Clay"];
 const WateringFrequencies = ["0.5-week", "1-week", "1.5-weeks", "2-weeks", "2.5-weeks", "3-weeks", "3.5-weeks", "4-weeks"];
 
 const WateringTypes = ["deep", "surface"];
-
-function readPlants() {
-    return new Promise((resolve, reject) => {
-        const records: string[] = [];
-
-        fs.createReadStream("./features/db/plants.csv")
-            .on("error", error => {
-                reject(error);
-            })
-            .pipe(parse({
-                delimiter: ",",
-            }))
-            .on("data", (record: string[]) => {
-                const name = record[0];
-
-                records.push(name.charAt(0).toUpperCase() + name.slice(1));
-            })
-            .on("error", (error) => {
-                reject(error);
-            })
-            .on("end", () => {
-                resolve(records);
-            });
-    }) as Promise<string[]>;
-}
 
 export async function generateFakeData(database: Db, userId: string, pageCount: number = 10) {
     console.log("Deleting existing plants...");
@@ -61,7 +35,7 @@ export async function generateFakeData(database: Db, userId: string, pageCount: 
 
     console.log("Creating plants...");
 
-    const names = await readPlants();
+    const names = PlantsData.map(x => x.name);
 
     for (let i = 0; i < pageCount; i += 1) {
         const page: Document[] = [];
