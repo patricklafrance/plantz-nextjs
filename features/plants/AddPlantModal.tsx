@@ -10,6 +10,7 @@ import {
     FormControl,
     FormErrorMessage,
     FormLabel,
+    HStack,
     Heading,
     Input,
     Modal,
@@ -26,7 +27,7 @@ import {
     useBreakpointValue
 } from "@chakra-ui/react";
 import { LocationValuesAndLabels, LuminosityValuesAndLabels, WateringFrequencyValuesAndLabels, WateringTypeValuesAndLabels } from "./documents";
-import { SyntheticEvent, useCallback } from "react";
+import { SyntheticEvent, useCallback, useState } from "react";
 import { getErrorMessage, isValid } from "@core/validation";
 
 import { Formik } from "formik";
@@ -49,9 +50,39 @@ interface _ModalProps {
 function _Modal({ onClose }: _ModalProps) {
     const userId = useUserId();
 
+    const [initialValues, setInitialValues] = useState({
+        description: "",
+        family: "",
+        location: "",
+        luminosity: "high",
+        mistLeaves: false,
+        name: "",
+        soilType: "",
+        userId,
+        wateringFrequency: "1-week",
+        wateringQuantity: "",
+        wateringType: "deep"
+    } as AddPlantModel);
+
     const emit = useEventEmitter();
 
     const { error, isError, isLoading, mutateAsync: addPlant } = useAddPlant();
+
+    const handleAutofill = useCallback(() => {
+        setInitialValues({
+            description: "",
+            family: "Araceae",
+            location: "bedroom",
+            luminosity: "medium",
+            mistLeaves: false,
+            name: "Philodendron cordatum",
+            soilType: "",
+            userId,
+            wateringFrequency: "1-week",
+            wateringQuantity: "100ml",
+            wateringType: "surface"
+        });
+    }, [setInitialValues, userId]);
 
     const handleSubmit = useCallback(async (values: AddPlantModel) => {
         try {
@@ -74,21 +105,10 @@ function _Modal({ onClose }: _ModalProps) {
                 <ModalCloseButton isDisabled={isLoading} />
                 <ModalBody>
                     <Formik
-                        initialValues={{
-                            description: "",
-                            family: "Araceae",
-                            location: "bedroom",
-                            luminosity: "medium",
-                            mistLeaves: false,
-                            name: "Philodendron cordatum",
-                            soilType: "",
-                            userId,
-                            wateringFrequency: "1-week",
-                            wateringQuantity: "100ml",
-                            wateringType: "surface"
-                        }}
+                        initialValues={initialValues}
                         onSubmit={handleSubmit}
                         validationSchema={addPlantValidationSchema}
+                        enableReinitialize
                     >
                         {formikState => {
                             const { getFieldProps, submitForm } = formikState;
@@ -208,24 +228,34 @@ function _Modal({ onClose }: _ModalProps) {
                     </Formik>
                 </ModalBody>
                 <ModalFooter>
-                    <ButtonGroup spacing={2}>
-                        <Button
-                            variant="outline"
-                            onClick={close}
-                            isDisabled={isLoading}
-                        >
+                    <HStack width="100%">
+                        <Box flexGrow={1}>
+                            <Button
+                                variant="outline"
+                                onClick={handleAutofill}
+                            >
+                                Autofill with fake data
+                            </Button>
+                        </Box>
+                        <ButtonGroup spacing={2}>
+                            <Button
+                                variant="outline"
+                                onClick={close}
+                                isDisabled={isLoading}
+                            >
                             Cancel
-                        </Button>
-                        <Button
-                            form="add-plant-form"
-                            isLoading={isLoading}
-                            type="submit"
-                            variant="solid"
-                            colorScheme="teal"
-                        >
+                            </Button>
+                            <Button
+                                form="add-plant-form"
+                                isLoading={isLoading}
+                                type="submit"
+                                variant="solid"
+                                colorScheme="teal"
+                            >
                             Add
-                        </Button>
-                    </ButtonGroup>
+                            </Button>
+                        </ButtonGroup>
+                    </HStack>
                 </ModalFooter>
             </ModalContent>
         </>

@@ -1,6 +1,6 @@
 import * as Yup from "yup";
 
-import { AddPlantModel, EditPlantModel, PlantModel, addPlantValidationSchema, editPlantValidationSchema, toPlantModel } from "@features/plants";
+import { AddPlantModel, EditPlantModel, PlantModel, addPlantValidationSchema, editPlantValidationSchema, getNextWateringDate, toPlantModel } from "@features/plants";
 import { ApiCommandResponse, ApiGetResponse, IdentityData, toSerializableId } from "@core/api";
 import { NextApiRequest, NextApiResponse } from "next";
 import { PlantDocument, PlantsCollectionName } from "@features/plants/server";
@@ -46,8 +46,9 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse<ApiCommandRe
             ...model,
             creationDate: date,
             lastUpdateDate: date,
+            nextWateringDate: getNextWateringDate(new Date(), model.wateringFrequency),
             userId: new ObjectId(userId)
-        });
+        } as PlantDocument);
     });
 
     res.status(200).json({
