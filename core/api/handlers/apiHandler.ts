@@ -22,6 +22,9 @@ export function apiHandler(handlers: ApiHandlers) {
                 await handler(req, res);
             }
             catch (error: any) {
+                // Log to Vercel functions logs.
+                console.error(error);
+
                 res.status(500).end(isDebug ? error.toString() : "");
             }
         }

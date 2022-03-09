@@ -49,7 +49,7 @@ import { default as NextLink } from "next/link";
 import { PageMarginBottom } from "@layouts";
 import { PlantListRoute } from "@routes";
 import { RiMapPinLine } from "react-icons/ri";
-import { getPrettyWaterFrequency } from "./getPrettyWaterFrequency";
+import { getPrettyWateringFrequency } from "./getPrettyWateringFrequency";
 import { preserveListQueryParameters } from "./preserveListQueryParameters";
 import { transparentize } from "@chakra-ui/theme-tools";
 import { useFormik } from "formik";
@@ -487,7 +487,7 @@ function ListItem({ plant, style }: ListItemProps) {
                 </Box>
                 <Box gridArea="watering-qty">
                     <Text fontSize="lg">{plant.wateringQuantity}</Text>
-                    <Text color="gray.400">every {getPrettyWaterFrequency(plant.wateringFrequency)}</Text>
+                    <Text color="gray.400">every {getPrettyWateringFrequency(plant.wateringFrequency)}</Text>
                 </Box>
                 <Box gridArea="watering-type">
                     <Text fontSize="lg">{WateringTypeValuesAndLabels[plant.wateringType as keyof typeof WateringTypeValuesAndLabels]}</Text>

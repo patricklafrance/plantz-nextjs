@@ -23,7 +23,6 @@ https://plantz-nextjs.vercel.app/
 -   Next-auth Google authentication
 -   Next-auth MongoDb
 -   Next-auth authentication middleware for page routes & API routes
--   Next-auth extends session user object with custom data
 -   MongoDb client for Nodejs
 
 ## Installation

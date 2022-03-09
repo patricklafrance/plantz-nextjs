@@ -1,6 +1,6 @@
 import { WateringFrequencyValuesAndLabels } from "./documents";
 
-export function getPrettyWaterFrequency(wateringFrequency: string) {
+export function getPrettyWateringFrequency(wateringFrequency: string) {
     /* eslint-disable indent */
     switch (wateringFrequency) {
         case "1-week":
