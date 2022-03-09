@@ -1,6 +1,22 @@
 import { ApiErrorBoundary, ApiErrorBoundaryFallbackProps, buildUrl } from "@core/api/http";
-import { Box, Divider, Grid, HStack, IconButton, Link, Stack, StyleProps, Tag, TagLabel, TagLeftIcon, Text, useColorModeValue } from "@chakra-ui/react";
-import { CSSProperties, ReactNode, useCallback, useMemo } from "react";
+import {
+    Box,
+    Button,
+    Divider,
+    Grid,
+    HStack,
+    IconButton,
+    Link,
+    Stack,
+    StyleProps,
+    Tag,
+    TagLabel,
+    TagLeftIcon,
+    Text,
+    useBreakpointValue,
+    useColorModeValue
+} from "@chakra-ui/react";
+import { CSSProperties, FunctionComponent, ReactNode, useCallback, useMemo, useRef } from "react";
 import { CheckIcon, TimeIcon, ViewIcon } from "@chakra-ui/icons";
 import { Error, NoResults, ShortDivider } from "@components";
 import { LocationValuesAndLabels, WateringTypeValuesAndLabels } from "./documents";
@@ -17,6 +33,7 @@ import { TodayRoute } from "@routes";
 import { getPrettyWaterFrequency } from "./getPrettyWaterFrequency";
 import { toFormattedWateringDate } from "./wateringDate";
 import { transparentize } from "@chakra-ui/theme-tools";
+import { useIsInViewport } from "@hooks";
 import { useQueryClient } from "react-query";
 import { useRouter } from "next/router";
 
@@ -72,17 +89,12 @@ function NameLink({ name, plantId }: NameLinkProps) {
     );
 }
 
-interface ViewButtonProps {
+interface ViewButtonForDeviceProps {
+    onPrefetch: () => void;
     plantId: string;
 }
 
-function ViewButton({ plantId }: ViewButtonProps) {
-    const userId = useUserIdContext();
-
-    const queryClient = useQueryClient();
-
-    const handleMouseEnter = useCallback(() => prefetchPlant(queryClient, userId, plantId), [plantId, queryClient, userId]);
-
+function DesktopViewButton({ onPrefetch, plantId }: ViewButtonForDeviceProps) {
     return (
         <ViewLink plantId={plantId}>
             <IconButton
@@ -92,10 +104,98 @@ function ViewButton({ plantId }: ViewButtonProps) {
                 size="lg"
                 isRound
                 title="View plant info"
-                onMouseEnter={handleMouseEnter}
+                onMouseEnter={onPrefetch}
             />
         </ViewLink>
     );
+}
+
+function MobileViewButton({ onPrefetch, plantId }: ViewButtonForDeviceProps) {
+    const ref = useRef(null);
+
+    useIsInViewport(ref, onPrefetch);
+
+    return (
+        <ViewLink plantId={plantId}>
+            <Button
+                as="a"
+                leftIcon={<ViewIcon />}
+                aria-label="View plant info"
+                title="View plant info"
+                ref={ref}
+            >
+                View
+            </Button>
+        </ViewLink>
+    );
+}
+
+function useViewButtonForDevice() {
+    const component = useBreakpointValue<FunctionComponent<ViewButtonForDeviceProps>>({ base: MobileViewButton, md: DesktopViewButton });
+
+    // Fallback for SSR.
+    return component ?? DesktopViewButton;
+}
+
+interface ViewButtonProps {
+    plantId: string;
+}
+
+function ViewButton({ plantId }: ViewButtonProps) {
+    const userId = useUserIdContext();
+
+    const queryClient = useQueryClient();
+
+    const handlePrefetch = useCallback(() => prefetchPlant(queryClient, userId, plantId), [plantId, queryClient, userId]);
+
+    const Component = useViewButtonForDevice();
+
+    return (
+        <Component
+            plantId={plantId}
+            onPrefetch={handlePrefetch}
+        />
+    );
+}
+
+interface ResetWateringButtonForDeviceProps {
+    isLoading: boolean;
+    onClick: () => void;
+}
+
+function DesktopResetWateringButton({ isLoading, onClick }: ResetWateringButtonForDeviceProps) {
+    return (
+        <IconButton
+            icon={<CheckIcon />}
+            aria-label="Mark as done"
+            size="lg"
+            isRound
+            title="Mark as done"
+            onClick={onClick}
+            isLoading={isLoading}
+        />
+    );
+}
+
+function MobileResetWateringButton({ isLoading, onClick }: ResetWateringButtonForDeviceProps) {
+    return (
+        <Button
+            leftIcon={<CheckIcon />}
+            aria-label="Mark as done"
+            title="Mark as done"
+            onClick={onClick}
+            isLoading={isLoading}
+        >
+            Done
+        </Button>
+    );
+}
+
+function useResetWateringButtonForDevice() {
+    const component = useBreakpointValue<FunctionComponent<ResetWateringButtonForDeviceProps>>({ base: MobileResetWateringButton, md: DesktopResetWateringButton });
+
+    // Fallback for SSR.
+    return component ?? DesktopResetWateringButton;
 }
 
 interface ResetWateringButtonProps {
@@ -115,15 +215,12 @@ function ResetWateringButton({ plantId }: ResetWateringButtonProps) {
         });
     }, [plantId, resetWatering, userId]);
 
+    const Component = useResetWateringButtonForDevice();
+
     return (
-        <IconButton
-            icon={<CheckIcon />}
-            aria-label="Mark as done"
-            size="lg"
-            isRound
-            title="Mark as done"
-            onClick={handleClick}
+        <Component
             isLoading={isLoading}
+            onClick={handleClick}
         />
     );
 }

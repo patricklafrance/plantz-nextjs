@@ -21,7 +21,7 @@ export function NewUserView({ userId }: NewUserViewProps) {
         if (hasGeneratedFakeData) {
             setTimeout(() => {
                 router.push(TodayRoute);
-            }, 2000);
+            }, 1000);
         }
     }, [hasGeneratedFakeData, router]);
 
@@ -79,7 +79,7 @@ export function NewUserView({ userId }: NewUserViewProps) {
                 {hasGeneratedFakeData && (
                     <Alert status="success" variant="solid" borderRadius="lg" marginTop={8}>
                         <AlertIcon />
-                        Fake have been generated! You'll be redirected in a second...
+                        Fake data have been generated! You'll be redirected in a second...
                     </Alert>
                 )}
             </Flex>

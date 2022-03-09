@@ -25,12 +25,13 @@ import {
     TagLabel,
     TagLeftIcon,
     Text,
+    useBreakpointValue,
     useColorModeValue,
     useToast
 } from "@chakra-ui/react";
 import { ApiErrorBoundary, ApiErrorBoundaryFallbackProps, buildUrl } from "@core/api/http";
 import { AutoSizer, CellMeasurer, CellMeasurerCache, Index, InfiniteLoader, ListRowProps, List as VirtualizedList, WindowScroller } from "react-virtualized";
-import { CSSProperties, ReactNode, SyntheticEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { CSSProperties, FunctionComponent, ReactNode, SyntheticEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CloseIcon, DeleteIcon, PlusSquareIcon, Search2Icon, SearchIcon, TimeIcon, ViewIcon } from "@chakra-ui/icons";
 import { Error, NoResults, ShortDivider } from "@components";
 import { LocationValuesAndLabels, WateringTypeValuesAndLabels } from "./documents";
@@ -53,11 +54,11 @@ import { preserveListQueryParameters } from "./preserveListQueryParameters";
 import { transparentize } from "@chakra-ui/theme-tools";
 import { useFormik } from "formik";
 import { useFormikState } from "@core/validation";
+import { useIsInViewport } from "@hooks";
 import { useQueryClient } from "react-query";
 import { useRouter } from "next/router";
 
 export interface PlantListViewProps {
-    query?: string;
     userId: string;
 }
 
@@ -257,17 +258,12 @@ function NameLink({ name, plantId }: NameLinkProps) {
     );
 }
 
-interface ViewButtonProps {
+interface ViewButtonForDeviceProps {
+    onPrefetch: () => void;
     plantId: string;
 }
 
-function ViewButton({ plantId }: ViewButtonProps) {
-    const userId = useUserIdContext();
-
-    const queryClient = useQueryClient();
-
-    const handleMouseEnter = useCallback(() => prefetchPlant(queryClient, userId, plantId), [plantId, queryClient, userId]);
-
+function DesktopViewButton({ onPrefetch, plantId }: ViewButtonForDeviceProps) {
     return (
         <ViewLink plantId={plantId}>
             <IconButton
@@ -277,10 +273,96 @@ function ViewButton({ plantId }: ViewButtonProps) {
                 size="lg"
                 isRound
                 title="View plant info"
-                onMouseEnter={handleMouseEnter}
+                onMouseEnter={onPrefetch}
             />
         </ViewLink>
     );
+}
+
+function MobileViewButton({ onPrefetch, plantId }: ViewButtonForDeviceProps) {
+    const ref = useRef(null);
+
+    useIsInViewport(ref, onPrefetch);
+
+    return (
+        <ViewLink plantId={plantId}>
+            <Button
+                as="a"
+                leftIcon={<ViewIcon />}
+                aria-label="View plant info"
+                title="View plant info"
+                ref={ref}
+            >
+                View
+            </Button>
+        </ViewLink>
+    );
+}
+
+function useViewButtonForDevice() {
+    const component = useBreakpointValue<FunctionComponent<ViewButtonForDeviceProps>>({ base: MobileViewButton, md: DesktopViewButton });
+
+    // Fallback for SSR.
+    return component ?? DesktopViewButton;
+}
+
+interface ViewButtonProps {
+    plantId: string;
+}
+
+function ViewButton({ plantId }: ViewButtonProps) {
+    const userId = useUserIdContext();
+
+    const queryClient = useQueryClient();
+
+    const handlePrefetch = useCallback(() => prefetchPlant(queryClient, userId, plantId), [plantId, queryClient, userId]);
+
+    const Component = useViewButtonForDevice();
+
+    return (
+        <Component
+            plantId={plantId}
+            onPrefetch={handlePrefetch}
+        />
+    );
+}
+
+interface DeleteButtonForDeviceProps {
+    onClick: () => void;
+}
+
+function DesktopDeleteButton({ onClick }: DeleteButtonForDeviceProps) {
+    return (
+
+        <IconButton
+            icon={<DeleteIcon />}
+            aria-label="Delete plant"
+            size="lg"
+            isRound
+            onClick={onClick}
+            title="Delete plant"
+        />
+    );
+}
+
+function MobileDeleteButton({ onClick }: DeleteButtonForDeviceProps) {
+    return (
+        <Button
+            leftIcon={<DeleteIcon />}
+            aria-label="Delete plant"
+            onClick={onClick}
+            title="Delete plant"
+        >
+            Delete
+        </Button>
+    );
+}
+
+function useDeleteButtonForDevice() {
+    const component = useBreakpointValue<FunctionComponent<DeleteButtonForDeviceProps>>({ base: MobileDeleteButton, md: DesktopDeleteButton });
+
+    // Fallback for SSR.
+    return component ?? DesktopDeleteButton;
 }
 
 interface DeleteButtonProps {
@@ -341,16 +423,11 @@ function DeleteButton({ plantId, plantName }: DeleteButtonProps) {
         setIsConfirmationOpen(false);
     }, [deletePlant, plantId, setIsConfirmationOpen, userId]);
 
+    const Component = useDeleteButtonForDevice();
+
     return (
         <>
-            <IconButton
-                icon={<DeleteIcon />}
-                aria-label="Delete plant"
-                size="lg"
-                isRound
-                onClick={handleClick}
-                title="Delete plant"
-            />
+            <Component onClick={handleClick} />
             <AlertDialog
                 isOpen={isConfirmationOpen}
                 leastDestructiveRef={cancelButtonRef}
@@ -442,7 +519,11 @@ const rowMeasurementsCache = new CellMeasurerCache({
     fixedWidth: true
 });
 
-function List({ query, userId }: PlantListViewProps) {
+interface ListProps extends PlantListViewProps {
+    query?: string;
+}
+
+function List({ query, userId }: ListProps) {
     const { data, fetchNextPage, hasNextPage, isLoading, totalCount } = useSearchPlants(userId, {
         query
     });
@@ -579,15 +660,10 @@ function List({ query, userId }: PlantListViewProps) {
     );
 }
 
-export function PlantListView({ query: initialQuery, userId }: PlantListViewProps) {
+export function PlantListView({ userId }: PlantListViewProps) {
     const router = useRouter();
 
-    const [query, setQuery] = useState(initialQuery);
-
-    // Keep the query in sync with the url search param.
-    useEffect(() => {
-        setQuery(initialQuery);
-    }, [initialQuery]);
+    const [query, setQuery] = useState(router.query.query as string | undefined);
 
     useEventSubcriber(SearchQueryChangedEvent, ({ query: newQuery }: SearchQueryChangedData) => {
         setQuery(newQuery);

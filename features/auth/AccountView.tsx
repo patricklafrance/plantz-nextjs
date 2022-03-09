@@ -1,4 +1,4 @@
-import { Avatar, Box, Button, Heading, SimpleGrid, Text, useColorModeValue } from "@chakra-ui/react";
+import { Avatar, Box, Button, Heading, SimpleGrid, Stack, Text, useColorModeValue } from "@chakra-ui/react";
 import { useFetchUser, useGenerateFakeData } from "./http";
 
 import { PageMarginBottom } from "@layouts";
@@ -38,16 +38,22 @@ export function AccountView({ userId }: AccountViewProps) {
                 marginBottom={8}
             />
             <SimpleGrid
-                columns={2}
+                columns={1}
                 width="max-content"
-                spacing={4}
+                spacing={6}
             >
-                <Text color={labelColor} fontWeight={500}>Name</Text>
-                <Text>{user.name}</Text>
-                <Text color={labelColor} fontWeight={500}>Email</Text>
-                <Text>{user.email}</Text>
-                <Text color={labelColor} fontWeight={500}>Id</Text>
-                <Text>{user.id}</Text>
+                <Stack>
+                    <Text as="span" color={labelColor} fontWeight={500}>Name</Text>
+                    <Text as="span">{user.name}</Text>
+                </Stack>
+                <Stack>
+                    <Text color={labelColor} fontWeight={500}>Email</Text>
+                    <Text>{user.email}</Text>
+                </Stack>
+                <Stack>
+                    <Text color={labelColor} fontWeight={500}>Id</Text>
+                    <Text>{user.id}</Text>
+                </Stack>
             </SimpleGrid>
             <Button
                 isLoading={isLoading}

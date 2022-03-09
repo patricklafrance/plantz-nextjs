@@ -3,18 +3,22 @@ import { Db, ObjectId } from "mongodb";
 import { PlantsCollectionName } from "@features/plants/documents";
 
 export async function seedData(database: Db, userId: string) {
-    console.log("Dropping plants collection...");
+    console.log("Deleting existing plants...");
+
+    const _userId = new ObjectId(userId);
 
     try {
-        await database.collection(PlantsCollectionName).drop();
+        const bulk = database.collection(PlantsCollectionName).initializeUnorderedBulkOp();
+
+        bulk.find({ userId: _userId }).delete();
+
+        await bulk.execute();
     }
     catch (error) {
         // ignore...
     }
 
     console.log("Creating plants...");
-
-    const _userId = new ObjectId(userId);
 
     await database.collection(PlantsCollectionName).insertMany([
         {

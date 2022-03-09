@@ -16,7 +16,6 @@ import { signOut, useSession } from "next-auth/react";
 import { default as NextLink } from "next/link";
 import { RiUser3Line } from "react-icons/ri";
 import { useCallback } from "react";
-import { useUrl } from "@core/api/http";
 
 export function UserMenu() {
     const { data: session } = useSession();

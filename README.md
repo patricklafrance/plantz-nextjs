@@ -22,7 +22,7 @@ https://plantz-nextjs.vercel.app/
 -   react-query automatic refresh on window focus
 -   Next-auth Google authentication
 -   Next-auth MongoDb
--   Next-auth authentified middleware
+-   Next-auth authentication middleware for page routes & API routes
 -   Next-auth extends session user object with custom data
 -   MongoDb client for Nodejs
 
@@ -32,7 +32,7 @@ https://plantz-nextjs.vercel.app/
 
 Create a `.env.local` file and set the set [environment variables](#environment-variables).
 
-## Environment variables
+### Environment variables
 
 Locally or hosted, create the following environnement variables:
 
@@ -45,9 +45,9 @@ Locally or hosted, create the following environnement variables:
 
 ### Database
 
-You can update the Mongo Database config in the `.env.local` file.
+When you'll sign up for the first time, you'll have the opportunity to generate fake data, otherwise you can use the app with an empty data set.
 
-When you'll sign up for the first time, you'll have the opportunity to generate fake data.
+Once you've sign up, you can always find a button to generate fake data in the account page.
 
 ## Learnings
 

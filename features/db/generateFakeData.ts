@@ -44,18 +44,22 @@ function readPlants() {
 }
 
 export async function generateFakeData(database: Db, userId: string, pageCount: number = 10) {
-    console.log("Dropping plants collection...");
+    console.log("Deleting existing plants...");
+
+    const _userId = new ObjectId(userId);
 
     try {
-        await database.collection(PlantsCollectionName).drop();
+        const bulk = database.collection(PlantsCollectionName).initializeUnorderedBulkOp();
+
+        bulk.find({ userId: _userId }).delete();
+
+        await bulk.execute();
     }
     catch (error) {
         // ignore...
     }
 
     console.log("Creating plants...");
-
-    const _userId = new ObjectId(userId);
 
     const names = await readPlants();
 
