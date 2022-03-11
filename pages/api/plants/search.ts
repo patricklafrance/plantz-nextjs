@@ -2,9 +2,10 @@ import * as Yup from "yup";
 
 import { ApiGetResponse, PageData } from "@core/api";
 import { NextApiRequest, NextApiResponse } from "next";
-import { PageSize, searchPlants } from "@features/plants/server";
-import { PlantListModel, toPlantListModel } from "@features/plants";
+import { PageSize, searchPlants, toPlantListModel } from "@features/plants/server";
 import { apiHandler, withQueryValidation } from "@core/api/handlers/server";
+
+import { PlantListModel } from "@features/plants";
 
 interface SearchPlantsQuery {
     page: string;

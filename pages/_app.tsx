@@ -1,9 +1,9 @@
 import "./_app.css";
 
 import { ApiClientFailureReasons, isApiError } from "@core/api/http";
-import { Component, ReactNode } from "react";
+import { Component, ReactNode, useEffect } from "react";
 import { ErrorBoundary, FallbackProps } from "react-error-boundary";
-import { NextRouter, Router, withRouter } from "next/router";
+import { NextRouter, useRouter, withRouter } from "next/router";
 import { QueryClient, QueryClientProvider, useQueryErrorResetBoundary } from "react-query";
 
 import { AppProps } from "next/app";
@@ -16,10 +16,33 @@ import { SessionProvider } from "next-auth/react";
 import { isNil } from "@core/utils";
 import { default as nProgress } from "nprogress";
 
-// nProgress setup, read https://www.akmittal.dev/posts/nextjs-navigation-progress-bar.
-Router.events.on("routeChangeStart", nProgress.start);
-Router.events.on("routeChangeError", nProgress.done);
-Router.events.on("routeChangeComplete", nProgress.done);
+function useProgressBar() {
+    const router = useRouter();
+
+    useEffect(() => {
+        // nProgress setup, read https://www.akmittal.dev/posts/nextjs-navigation-progress-bar.
+        router.events.on("routeChangeStart", nProgress.start);
+        router.events.on("routeChangeError", nProgress.done);
+        router.events.on("routeChangeComplete", nProgress.done);
+
+        return () => {
+            router.events.off("routeChangeStart", nProgress.start);
+            router.events.off("routeChangeError", nProgress.done);
+            router.events.off("routeChangeComplete", nProgress.done);
+        };
+    }, [router]);
+}
+
+// Router.events.on("routeChangeStart", (url: string) => {
+//     if (url.includes("/terms")) {
+//         console.log("*** including terms");
+
+//         throw "abort";
+//         // return false;
+//     }
+
+//     // return true;
+// });
 
 export type Page = NextPage & {
     getLayout: (page: ReactNode) => ReactNode;
@@ -79,8 +102,10 @@ const queryClient = new QueryClient();
 
 function App({
     Component,
-    pageProps: { session, ...pageProps } = {}
+    pageProps
 }: AppPropsWithPageTitle) {
+    useProgressBar();
+
     const { reset } = useQueryErrorResetBoundary();
 
     // This is a page owned by NextJs.
@@ -105,7 +130,8 @@ function App({
         <QueryClientProvider client={queryClient}>
             <ChakraProvider>
                 <SessionProvider
-                    session={session}
+                    // Must pass undefined otherwise nothing works... lol
+                    session={undefined}
                     refetchInterval={0}
                     refetchOnWindowFocus={false}
                 >

@@ -1,9 +1,9 @@
 import { Db, Document, ObjectId } from "mongodb";
-import { PlantsCollectionName, WateringFrequency } from "@features/plants/server";
+import { WateringFrequency, getNextWateringDate } from "@features/plants";
 
+import { PlantsCollectionName } from "@features/plants/server";
 import { PlantsData } from "./data";
 import { faker } from "@faker-js/faker";
-import { getNextWateringDate } from "@features/plants";
 
 const Families = ["Umbelliferae", "Lamiaceae", "Solanaceae", "Asteraceae", "Brassicaceae", "Liliaceae", "Rosaceae", "Cucurbitaceae"];
 
@@ -35,7 +35,7 @@ export async function generateFakeData(database: Db, userId: string, pageCount: 
 
     console.log("Creating plants...");
 
-    const names = PlantsData.map(x => x.name);
+    const names = PlantsData.map(x => x.name.charAt(0).toUpperCase() + x.name.slice(1));
 
     for (let i = 0; i < pageCount; i += 1) {
         const page: Document[] = [];

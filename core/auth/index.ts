@@ -1,2 +1,2 @@
-export * from "./useUserId";
+export * from "./useSessionUserId";
 export * from "./UserIdContext";

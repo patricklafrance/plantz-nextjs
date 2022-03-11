@@ -1,10 +1,14 @@
-import { UserDocument } from "./documents";
+import { LicensingStatus } from "./models";
+import { WithId } from "mongodb";
 import { toSerializableId } from "@core/api";
 
-export interface UserModel {
+export const UsersCollectionName = "users";
+
+export interface UserDocument extends WithId<Document> {
     email: string;
-    id: string;
+    emailVerified?: boolean;
     image: string;
+    licensingStatus: LicensingStatus;
     name: string;
 }
 
@@ -13,6 +17,7 @@ export function toUserModel(document: UserDocument) {
         email: document.email,
         id: toSerializableId(document._id),
         image: document.image,
+        licensingStatus: document.licensingStatus,
         name: document.name
     };
 }

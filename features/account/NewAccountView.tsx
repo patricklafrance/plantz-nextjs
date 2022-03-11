@@ -6,11 +6,11 @@ import { TodayRoute } from "@routes";
 import { useGenerateFakeData } from "./http";
 import { useRouter } from "next/router";
 
-export interface NewUserViewProps {
+export interface NewAccountViewProps {
     userId: string;
 }
 
-export function NewUserView({ userId }: NewUserViewProps) {
+export function NewAccountView({ userId }: NewAccountViewProps) {
     const [hasGeneratedFakeData, setHasGeneratedFakeData] = useState(false);
 
     const router = useRouter();

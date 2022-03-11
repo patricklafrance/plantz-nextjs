@@ -1,9 +1,9 @@
 import * as Yup from "yup";
 
-import { AddPlantModel, EditPlantModel, PlantModel, addPlantValidationSchema, editPlantValidationSchema, getNextWateringDate, toPlantModel } from "@features/plants";
+import { AddPlantModel, EditPlantModel, PlantModel, addPlantValidationSchema, editPlantValidationSchema, getNextWateringDate } from "@features/plants";
 import { ApiCommandResponse, ApiGetResponse, IdentityData, toSerializableId } from "@core/api";
 import { NextApiRequest, NextApiResponse } from "next";
-import { PlantDocument, PlantsCollectionName } from "@features/plants/server";
+import { PlantDocument, PlantsCollectionName, toPlantModel } from "@features/plants/server";
 import { apiHandler, withBodyValidation, withQueryValidation } from "@core/api/handlers/server";
 import { executeMongoDb, queryMongoDb } from "@core/mongoDb/server";
 

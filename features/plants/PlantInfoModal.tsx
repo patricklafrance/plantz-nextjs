@@ -39,15 +39,14 @@ import {
     useColorModeValue
 } from "@chakra-ui/react";
 import { CheckIcon, DeleteIcon, EditIcon, LinkIcon, QuestionIcon, TimeIcon, ViewIcon } from "@chakra-ui/icons";
-import { EditPlantModel, PlantModel, editPlantValidationSchema } from "./models";
-import { LocationValuesAndLabels, LuminosityValuesAndLabels, WateringFrequencyValuesAndLabels, WateringTypeValuesAndLabels } from "./documents";
+import { EditPlantModel, LocationValuesAndLabels, LuminosityValuesAndLabels, PlantModel, WateringFrequencyValuesAndLabels, WateringTypeValuesAndLabels, editPlantValidationSchema } from "./models";
 import { RiCalendarLine, RiDropLine, RiLeafLine, RiShowersLine, RiSunLine } from "react-icons/ri";
 import { SyntheticEvent, useCallback, useRef, useState } from "react";
 import { canResetWatering, isWateringDue, toFormattedWateringDate } from "./wateringDate";
 import { getErrorMessage, isValid } from "@core/validation";
+import { useContextUserId, useSessionUserId } from "@core/auth";
 import { useEventEmitter, useEventSubcriber } from "@core/events";
 import { useFetchPlant, useResetWatering, useUpdatePlant } from "./http";
-import { useUserId, useUserIdContext } from "@core/auth";
 
 import { Formik } from "formik";
 import { PlantListRoute } from "@routes";
@@ -236,7 +235,7 @@ interface ResetWateringButtonProps {
 }
 
 function ResetWateringButton({ colorScheme, plantId }: ResetWateringButtonProps) {
-    const userId = useUserIdContext();
+    const userId = useContextUserId();
 
     // TODO: display toaster on error.
     const { isLoading, mutate: resetWatering } = useResetWatering();
@@ -415,7 +414,7 @@ function EditPlant({
     formId,
     plant
 }: EditPlantProps) {
-    const userId = useUserId();
+    const userId = useSessionUserId();
 
     const emit = useEventEmitter();
 
@@ -653,7 +652,7 @@ function _Modal({
     onClose,
     plantId
 }: _ModalProps) {
-    const userId = useUserId();
+    const userId = useSessionUserId();
 
     const router = useRouter();
 

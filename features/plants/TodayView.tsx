@@ -18,14 +18,13 @@ import {
 } from "@chakra-ui/react";
 import { CSSProperties, FunctionComponent, ReactNode, useCallback, useMemo, useRef } from "react";
 import { CheckIcon, TimeIcon, ViewIcon } from "@chakra-ui/icons";
+import { DuePlantModel, LocationValuesAndLabels, WateringTypeValuesAndLabels } from "./models";
 import { Error, NoResults, ShortDivider } from "@components";
-import { LocationValuesAndLabels, WateringTypeValuesAndLabels } from "./documents";
 import { PlantInfoModal, PlantInfoViewMode, PlantInfoViewModes } from "./PlantInfoModal";
 import { RiLeafLine, RiThumbUpLine } from "react-icons/ri";
-import { UserIdContext, useUserIdContext } from "@core/auth";
+import { UserIdContext, useContextUserId } from "@core/auth";
 import { prefetchPlant, useDuePlants, useResetWatering } from "./http";
 
-import { DuePlantModel } from "./models";
 import { Icon } from "@chakra-ui/react";
 import { default as NextLink } from "next/link";
 import { PageMarginBottom } from "@layouts";
@@ -71,7 +70,7 @@ interface NameLinkProps {
 }
 
 function NameLink({ name, plantId }: NameLinkProps) {
-    const userId = useUserIdContext();
+    const userId = useContextUserId();
 
     const queryClient = useQueryClient();
 
@@ -142,7 +141,7 @@ interface ViewButtonProps {
 }
 
 function ViewButton({ plantId }: ViewButtonProps) {
-    const userId = useUserIdContext();
+    const userId = useContextUserId();
 
     const queryClient = useQueryClient();
 
@@ -203,7 +202,7 @@ interface ResetWateringButtonProps {
 }
 
 function ResetWateringButton({ plantId }: ResetWateringButtonProps) {
-    const userId = useUserIdContext();
+    const userId = useContextUserId();
 
     // TODO: display toaster on error.
     const { isLoading, mutate: resetWatering } = useResetWatering();
@@ -307,7 +306,11 @@ function LocationDivider({ label }: LocationDividerProps) {
     );
 }
 
-function List({ userId }: TodayViewProps) {
+interface ListProps {
+    userId: string;
+}
+
+function List({ userId }: ListProps) {
     const { data, isLoading } = useDuePlants(userId);
 
     const byLocation = useMemo(() => {

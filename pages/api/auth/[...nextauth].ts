@@ -1,9 +1,10 @@
-import { LoginRoute, NewUserRoute } from "@routes";
+import { LoginRoute, NewAccountRoute } from "@routes";
 
 import { default as GoogleProvider } from "next-auth/providers/google";
 import { MongoClient } from "mongodb";
 import { MongoDBAdapter } from "@next-auth/mongodb-adapter";
 import { default as NextAuth } from "next-auth";
+import { UserDocument } from "@features/account/server";
 import { connectMongoDb } from "@core/mongoDb/server";
 import { isNil } from "@core/utils";
 
@@ -32,13 +33,22 @@ export default NextAuth({
         }
     },
     pages: {
-        newUser: NewUserRoute,
+        newUser: NewAccountRoute,
         signIn: LoginRoute
     },
     providers: [
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID as string,
-            clientSecret: process.env.GOOGLE_SECRET as string
+            clientSecret: process.env.GOOGLE_SECRET as string,
+            profile(profile) {
+                return {
+                    email: profile.email,
+                    id: profile.sub,
+                    image: profile.picture,
+                    licensingStatus: "paid",
+                    name: profile.name
+                };
+            },
         })
     ],
     secret: process.env.NEXTAUTH_SECRET,

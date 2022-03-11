@@ -48,8 +48,6 @@ export function useAddPlant() {
 
 export function useUpdatePlant() {
     const getInvalidateKeys = useCallback((variables: EditPlantModel) => {
-        console.log([SearchPlantsUrl, [FetchSinglePlantUrl, variables.id, variables.userId]]);
-
         return [SearchPlantsUrl, [FetchSinglePlantUrl, variables.id, variables.userId]];
     }, []);
 

@@ -1,4 +1,4 @@
-import { AccountView, AccountViewProps } from "@features/auth";
+import { AccountView, AccountViewProps } from "@features/account";
 
 import { AuthenticatedLayout } from "@layouts";
 import { GetServerSideProps } from "next";

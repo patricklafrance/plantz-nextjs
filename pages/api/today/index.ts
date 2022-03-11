@@ -1,11 +1,11 @@
 import * as Yup from "yup";
 
-import { DuePlantModel, toDuePlantModel } from "@features/plants";
 import { NextApiRequest, NextApiResponse } from "next";
 import { apiHandler, withQueryValidation } from "@core/api/handlers/server";
+import { getDuePlants, toDuePlantModel } from "@features/plants/server";
 
 import { ApiGetResponse } from "@core/api";
-import { getDuePlants } from "@features/plants/server";
+import { DuePlantModel } from "@features/plants";
 
 async function handleGet(req: NextApiRequest, res: NextApiResponse<ApiGetResponse<DuePlantModel[]>>) {
     const { userId } = req.query;

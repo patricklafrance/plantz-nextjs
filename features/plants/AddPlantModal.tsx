@@ -1,4 +1,4 @@
-import { AddPlantModel, addPlantValidationSchema } from "./models";
+import { AddPlantModel, LocationValuesAndLabels, LuminosityValuesAndLabels, WateringFrequencyValuesAndLabels, WateringTypeValuesAndLabels, addPlantValidationSchema } from "./models";
 import {
     Alert,
     AlertDescription,
@@ -26,7 +26,6 @@ import {
     Tooltip,
     useBreakpointValue
 } from "@chakra-ui/react";
-import { LocationValuesAndLabels, LuminosityValuesAndLabels, WateringFrequencyValuesAndLabels, WateringTypeValuesAndLabels } from "./documents";
 import { SyntheticEvent, useCallback, useState } from "react";
 import { getErrorMessage, isValid } from "@core/validation";
 
@@ -36,7 +35,7 @@ import { QuestionIcon } from "@chakra-ui/icons";
 import { isNil } from "@core/utils";
 import { useAddPlant } from "./http";
 import { useEventEmitter } from "@core/events";
-import { useUserId } from "@core/auth";
+import { useSessionUserId } from "@core/auth";
 
 export interface AddPlantModalProps {
     isOpen: boolean;
@@ -48,7 +47,7 @@ interface _ModalProps {
 }
 
 function _Modal({ onClose }: _ModalProps) {
-    const userId = useUserId();
+    const userId = useSessionUserId();
 
     const [initialValues, setInitialValues] = useState({
         description: "",

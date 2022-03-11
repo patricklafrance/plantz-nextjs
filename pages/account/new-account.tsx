@@ -1,17 +1,17 @@
-import { NewUserView, NewUserViewProps } from "@features/auth";
+import { NewAccountView, NewAccountViewProps } from "@features/account";
 
 import { AuthenticatedLayout } from "@layouts";
 import { GetServerSideProps } from "next";
 import { ReactNode } from "react";
-import { getUserId } from "@core/auth/getUserId";
+import { getUserId } from "@core/auth/server";
 
-export default function NewUserPage(props: NewUserViewProps) {
+export default function NewAccountPage(props: NewAccountViewProps) {
     return (
-        <NewUserView {...props} />
+        <NewAccountView {...props} />
     );
 }
 
-NewUserPage.getLayout = (page: ReactNode) => {
+NewAccountPage.getLayout = (page: ReactNode) => {
     return (
         <AuthenticatedLayout pageTitle="Welcome">
             {page}

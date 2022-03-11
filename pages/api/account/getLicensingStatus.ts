@@ -1,15 +1,15 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { UserDocument, UsersCollectionName, toUserModel } from "@features/account/server";
+import { UserDocument, UsersCollectionName } from "@features/account/server";
 
 import { ApiGetResponse } from "@core/api";
+import { LicensingStatus } from "@features/account";
 import { Nullable } from "@core/types";
 import { ObjectId } from "mongodb";
-import { UserModel } from "@features/account";
 import { apiHandler } from "@core/api/handlers/server";
 import { isNil } from "@core/utils";
 import { queryMongoDb } from "@core/mongoDb/server";
 
-async function handleGet(req: NextApiRequest, res: NextApiResponse<ApiGetResponse<UserModel>>) {
+async function handleGet(req: NextApiRequest, res: NextApiResponse<ApiGetResponse<LicensingStatus>>) {
     const { id } = req.query;
 
     const user = await queryMongoDb(database => {
@@ -21,8 +21,9 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse<ApiGetRespons
     if (isNil(user)) {
         res.status(404).end();
     } else {
+        // res.setHeader("Cache-Control", "maxage=120, must-revalidate");
         res.status(200).json({
-            data: toUserModel(user)
+            data: user.licensingStatus
         });
     }
 }

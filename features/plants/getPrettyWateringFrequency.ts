@@ -1,4 +1,4 @@
-import { WateringFrequencyValuesAndLabels } from "./documents";
+import { WateringFrequencyValuesAndLabels } from "./models";
 
 export function getPrettyWateringFrequency(wateringFrequency: string) {
     /* eslint-disable indent */

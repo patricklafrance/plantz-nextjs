@@ -34,11 +34,10 @@ import { AutoSizer, CellMeasurer, CellMeasurerCache, Index, InfiniteLoader, List
 import { CSSProperties, FunctionComponent, ReactNode, SyntheticEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CloseIcon, DeleteIcon, PlusSquareIcon, Search2Icon, SearchIcon, TimeIcon, ViewIcon } from "@chakra-ui/icons";
 import { Error, NoResults, ShortDivider } from "@components";
-import { LocationValuesAndLabels, WateringTypeValuesAndLabels } from "./documents";
+import { LocationValuesAndLabels, PlantListModel, SearchPlantsModel, WateringTypeValuesAndLabels, searchPlantsValidationSchema } from "./models";
 import { NoResultsClearedEvent, PlantDeletedEvent, SearchQueryChangedData, SearchQueryChangedEvent } from "./events";
 import { PlantInfoModal, PlantInfoViewMode, PlantInfoViewModes } from "./PlantInfoModal";
-import { PlantListModel, SearchPlantsModel, searchPlantsValidationSchema } from "./models";
-import { UserIdContext, useUserIdContext } from "@core/auth";
+import { UserIdContext, useContextUserId } from "@core/auth";
 import { isNil, isNilOrEmpty } from "@core/utils";
 import { isWateringDue, toFormattedWateringDate } from "./wateringDate";
 import { prefetchPlant, useDeletePlant, useSearchPlants } from "./http";
@@ -240,7 +239,7 @@ interface NameLinkProps {
 }
 
 function NameLink({ name, plantId }: NameLinkProps) {
-    const userId = useUserIdContext();
+    const userId = useContextUserId();
 
     const queryClient = useQueryClient();
 
@@ -311,7 +310,7 @@ interface ViewButtonProps {
 }
 
 function ViewButton({ plantId }: ViewButtonProps) {
-    const userId = useUserIdContext();
+    const userId = useContextUserId();
 
     const queryClient = useQueryClient();
 
@@ -371,7 +370,7 @@ interface DeleteButtonProps {
 }
 
 function DeleteButton({ plantId, plantName }: DeleteButtonProps) {
-    const userId = useUserIdContext();
+    const userId = useContextUserId();
 
     const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
 
@@ -519,8 +518,9 @@ const rowMeasurementsCache = new CellMeasurerCache({
     fixedWidth: true
 });
 
-interface ListProps extends PlantListViewProps {
+interface ListProps {
     query?: string;
+    userId: string;
 }
 
 function List({ query, userId }: ListProps) {
