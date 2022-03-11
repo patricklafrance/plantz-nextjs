@@ -36,7 +36,7 @@ async function trialExpiredGate(req: NextRequest) {
 }
 
 async function middleware(req: NextRequest) {
-    if (isApiRoute(req)) {
+    if (isPublicRoute(req.nextUrl.pathname) || isApiRoute(req)) {
         return NextResponse.next();
     }
 

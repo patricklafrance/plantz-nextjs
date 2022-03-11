@@ -4,7 +4,6 @@ import { default as GoogleProvider } from "next-auth/providers/google";
 import { MongoClient } from "mongodb";
 import { MongoDBAdapter } from "@next-auth/mongodb-adapter";
 import { default as NextAuth } from "next-auth";
-import { UserDocument } from "@features/account/server";
 import { connectMongoDb } from "@core/mongoDb/server";
 import { isNil } from "@core/utils";
 

@@ -10,6 +10,7 @@ https://plantz-nextjs.vercel.app/
 -   NextJS route based routing for Modal
 -   NextJS isomorphic models & validation schemas
 -   NextJS with a virtualized list
+-   NextJS SSR & SSG
 -   react-query basic fetch & cache
 -   react-query parameterized fetch & cache entry
 -   react-query infinite scrolling
