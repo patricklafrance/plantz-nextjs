@@ -13,10 +13,15 @@ export function TrialExpiredView() {
     const { isLoading, mutateAsync: updateLicensingStatus } = useUpdateLicensingStatus();
 
     const handleContinue = useCallback(async () => {
-        await updateLicensingStatus({
-            licensingStatus: "paid",
-            userId: userId
-        });
+        try {
+            await updateLicensingStatus({
+                licensingStatus: "paid",
+                userId: userId
+            });
+        } catch (error) {
+            // Log to vercel console.
+            console.error(error);
+        }
 
         router.push(TodayRoute);
     }, [updateLicensingStatus, router, userId]);
