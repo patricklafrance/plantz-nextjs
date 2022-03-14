@@ -12,7 +12,7 @@ import { withAuth } from "next-auth/middleware";
 function getBaseUrl(req: NextRequest) {
     const { nextUrl } = req;
 
-    return `${nextUrl.protocol}//${nextUrl.hostname}:${nextUrl.port}`;
+    return `${nextUrl.protocol}//${nextUrl.hostname}${!isNil(nextUrl.port) ? `:${nextUrl.port}` : ""}`;
 }
 
 function isApiRoute(req: NextRequest) {
