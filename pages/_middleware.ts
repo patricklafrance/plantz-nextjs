@@ -21,6 +21,8 @@ function isApiRoute(req: NextRequest) {
 
 async function trialExpiredGate(req: NextRequest) {
     if (req.nextUrl.pathname.startsWith(TrialExpiredRoute)) {
+        console.log("**** Is trial expired route");
+
         return null;
     }
 
@@ -45,7 +47,11 @@ async function trialExpiredGate(req: NextRequest) {
 }
 
 async function middleware(req: NextRequest) {
+    console.log("**** In root middleware");
+
     if (isPublicRoute(req.nextUrl.pathname) || isApiRoute(req)) {
+        console.log("**** Is public or API route");
+
         return NextResponse.next();
     }
 
