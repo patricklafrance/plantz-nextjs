@@ -53,29 +53,17 @@ async function middleware(req: NextRequest) {
     return response;
 }
 
-export default withAuth({
-    callbacks: {
-        authorized: ({ req, token }) => {
-            if (isPublicRoute(req.nextUrl.pathname)) {
-                return true;
-            }
+export default withAuth(
+    middleware,
+    {
+        callbacks: {
+            authorized: ({ req, token }) => {
+                if (isPublicRoute(req.nextUrl.pathname)) {
+                    return true;
+                }
 
-            return !isNil(token);
+                return !isNil(token);
+            }
         }
     }
-});
-
-// export default withAuth(
-//     middleware,
-//     {
-//         callbacks: {
-//             authorized: ({ req, token }) => {
-//                 if (isPublicRoute(req.nextUrl.pathname)) {
-//                     return true;
-//                 }
-
-//                 return !isNil(token);
-//             }
-//         }
-//     }
-// );
+);
