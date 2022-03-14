@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { TrialExpiredRoute, isPublicRoute } from "@routes";
 import { buildUrl, httpGet } from "@core/api/http";
+import { isNil, isNilOrEmpty } from "@core/utils";
 
 import { ApiGetResponse } from "@core/api";
 import { JWT } from "next-auth/jwt";
 import { LicensingStatus } from "@features/account";
-import { isNil } from "@core/utils";
 import { withAuth } from "next-auth/middleware";
 
 // Don't do this, instead add another env variable for the base url.
 function getBaseUrl(req: NextRequest) {
     const { nextUrl } = req;
 
-    return `${nextUrl.protocol}//${nextUrl.hostname}${!isNil(nextUrl.port) ? `:${nextUrl.port}` : ""}`;
+    return `${nextUrl.protocol}//${nextUrl.hostname}${!isNilOrEmpty(nextUrl.port) ? `:${nextUrl.port}` : ""}`;
 }
 
 function isApiRoute(req: NextRequest) {
