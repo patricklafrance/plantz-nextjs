@@ -54,8 +54,6 @@ function useCommand<TVariables, TData = unknown>(url: string, method: Omit<HttpM
             throw "\"invalidateKeys\" function must return an array of fetch keys.";
         }
 
-        console.log(queryKeys);
-
         queryKeys.forEach(x => {
             promises.push(queryClient.invalidateQueries(x));
         });

@@ -8,6 +8,13 @@ import { LicensingStatus } from "@features/account";
 import { isNil } from "@core/utils";
 import { withAuth } from "next-auth/middleware";
 
+// Don't do this, instead add another env variable for the base url.
+function getBaseUrl(req: NextRequest) {
+    const { nextUrl } = req;
+
+    return `${nextUrl.protocol}//${nextUrl.hostname}:${nextUrl.port}`;
+}
+
 function isApiRoute(req: NextRequest) {
     return req.url.includes("/api");
 }
@@ -19,7 +26,10 @@ async function trialExpiredGate(req: NextRequest) {
 
     const _req = req as NextRequest & { nextauth: { token: JWT } };
 
-    const fetchUrl = buildUrl("http://localhost:3000/api/account/getLicensingStatus", {
+    console.log(`${getBaseUrl(req)}/api/account/getLicensingStatus`);
+
+    // const fetchUrl = buildUrl("http://localhost:3000/api/account/getLicensingStatus", {
+    const fetchUrl = buildUrl(`${getBaseUrl(req)}/api/account/getLicensingStatus`, {
         id: _req.nextauth.token.userId
     });
 

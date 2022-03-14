@@ -40,7 +40,7 @@ Locally or hosted, create the following environnement variables:
 -   `MONGODB_DB`: Ex. plantz
 -   `GOOGLE_CLIENT_ID`: https://console.cloud.google.com/apis/credentials
 -   `GOOGLE_SECRET`: https://console.cloud.google.com/apis/credentials
--   `NEXTAUTH_URL`: Ex. http://localhost:3000
+-   `HOSTNAME`: Ex. http://localhost:3000
 -   `NEXTAUTH_SECRET`: Anything you want
 
 ### Database
