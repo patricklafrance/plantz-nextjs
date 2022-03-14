@@ -26,8 +26,6 @@ async function trialExpiredGate(req: NextRequest) {
 
     const _req = req as NextRequest & { nextauth: { token: JWT } };
 
-    console.info(`${getBaseUrl(req)}/api/account/getLicensingStatus`);
-
     // const fetchUrl = buildUrl("http://localhost:3000/api/account/getLicensingStatus", {
     const fetchUrl = buildUrl(`${getBaseUrl(req)}/api/account/getLicensingStatus`, {
         id: _req.nextauth.token.userId
