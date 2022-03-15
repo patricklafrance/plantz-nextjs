@@ -483,8 +483,6 @@ function EditPlant({
                             <form
                                 id={formId}
                                 onSubmit={(event: SyntheticEvent) => {
-                                    console.log("**** inline edit");
-
                                     event.preventDefault();
                                     submitForm();
                                 }}

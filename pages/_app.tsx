@@ -33,17 +33,6 @@ function useProgressBar() {
     }, [router]);
 }
 
-// Router.events.on("routeChangeStart", (url: string) => {
-//     if (url.includes("/terms")) {
-//         console.log("*** including terms");
-
-//         throw "abort";
-//         // return false;
-//     }
-
-//     // return true;
-// });
-
 export type Page = NextPage & {
     getLayout: (page: ReactNode) => ReactNode;
 }

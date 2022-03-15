@@ -3,11 +3,13 @@ import { Button, Flex, Heading, Text } from "@chakra-ui/react";
 import { TodayRoute } from "@routes";
 import { useCallback } from "react";
 import { useRouter } from "next/router";
-import { useSessionUserId } from "@core/auth";
 import { useUpdateLicensingStatus } from "./http";
 
-export function TrialExpiredView() {
-    const userId = useSessionUserId();
+export interface TrialExpiredViewProps {
+    userId: string;
+}
+
+export function TrialExpiredView({ userId }: TrialExpiredViewProps) {
     const router = useRouter();
 
     const { isLoading, mutateAsync: updateLicensingStatus } = useUpdateLicensingStatus();

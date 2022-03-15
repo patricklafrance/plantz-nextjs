@@ -18,8 +18,6 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse<ApiGetRespons
             .findOne({ _id: new ObjectId(id as string) }) as Promise<Nullable<UserDocument>>;
     });
 
-    console.log(user);
-
     if (isNil(user)) {
         res.status(404).end();
     } else {
